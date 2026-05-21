@@ -1,84 +1,130 @@
-"""Read-only IMAP fetch of this week's flyer emails.
+"""Read-only IMAP fetch of weekly-ad emails + extraction of the flyer link.
 
-Connects to the mailbox, finds recent messages that look like store flyers, and
-saves their attachments (PDF/image) to a working dir. NEVER deletes or marks
-mail — strictly read-only.
+Flyer emails don't attach the ad — they link to a web-hosted weekly ad (usually a
+tracking redirect that lands on a Flipp/store SPA). So this module:
 
-Starting implementation: validate against the real mailbox once it's subscribed
-to store flyer lists (sender list in config.yaml is the main thing to tune).
+  1. finds flyer emails — from a known store sender (config stores[].senders) AND
+     a flyer-ish subject (config email.subject_hints), which keeps welcome /
+     receipt / account emails out;
+  2. pulls the best "view the weekly ad" link out of the HTML body.
+
+The renderer (web_flyer) then screenshots that URL. Strictly READ-ONLY: the
+mailbox is opened readonly and nothing is ever deleted or flagged.
 """
 from __future__ import annotations
 
 import email
 import imaplib
+import re
+from dataclasses import dataclass
 from datetime import datetime, timedelta
+from email.header import decode_header
 from email.message import Message
-from pathlib import Path
 
 from settings import env
 
 
-def fetch_flyer_attachments(cfg: dict, work_dir: str | Path) -> list[Path]:
-    work = Path(work_dir)
-    work.mkdir(parents=True, exist_ok=True)
+@dataclass
+class FlyerEmail:
+    store: str
+    sender: str
+    subject: str
+    date: str
+    flyer_url: str | None
 
-    host = env("IMAP_HOST", cfg.get("email", {}).get("host", "imap.gmail.com"))
-    user = env("IMAP_USER")
-    pw = env("IMAP_APP_PASSWORD")
+
+def fetch_flyer_emails(cfg: dict) -> list[FlyerEmail]:
+    host = env("IMAP_HOST", "imap.gmail.com")
+    user, pw = env("IMAP_USER"), env("IMAP_APP_PASSWORD")
     if not (user and pw):
         raise RuntimeError("IMAP_USER / IMAP_APP_PASSWORD not set in .env")
 
-    lookback = cfg["email"].get("lookback_days", 8)
-    since = (datetime.now() - timedelta(days=lookback)).strftime("%d-%b-%Y")
+    ecfg = cfg.get("email", {})
+    mapping = _store_senders(cfg)
+    hints = [h.lower() for h in ecfg.get("subject_hints", [])]
+    since = (datetime.now() - timedelta(days=ecfg.get("lookback_days", 8))).strftime("%d-%b-%Y")
 
-    saved: list[Path] = []
+    found: list[FlyerEmail] = []
     M = imaplib.IMAP4_SSL(host, int(env("IMAP_PORT", "993")))
     try:
         M.login(user, pw)
-        M.select("INBOX", readonly=True)            # readonly — cannot modify mail
-        typ, data = M.search(None, f'(SINCE {since})')
+        M.select("INBOX", readonly=True)          # read-only — cannot modify mail
+        typ, data = M.search(None, f"(SINCE {since})")
         for num in data[0].split():
-            typ, msg_data = M.fetch(num, "(RFC822)")
-            msg = email.message_from_bytes(msg_data[0][1])
-            if not _looks_like_flyer(msg, cfg):
-                continue
+            typ, md = M.fetch(num, "(RFC822)")
+            msg = email.message_from_bytes(md[0][1])
             sender = email.utils.parseaddr(msg.get("From", ""))[1]
-            saved += _save_attachments(msg, work, sender)
+            store = _store_for(sender, mapping)
+            if not store:
+                continue
+            subject = _decode(msg.get("Subject", ""))
+            if hints and not any(h in subject.lower() for h in hints):
+                continue                          # known sender, but not a flyer (e.g. welcome)
+            html = _html_body(msg)
+            url = extract_flyer_link(html, ecfg) if html else None
+            found.append(FlyerEmail(store, sender, subject, msg.get("Date", ""), url))
     finally:
         try:
             M.logout()
         except Exception:
             pass
-    return saved
+    return found
 
 
-def _looks_like_flyer(msg: Message, cfg: dict) -> bool:
-    ecfg = cfg.get("email", {})
-    sender = email.utils.parseaddr(msg.get("From", ""))[1].lower()
-    allowed = [s.lower() for s in ecfg.get("allowed_senders", [])]
-    if allowed:
-        return any(_match(sender, a) for a in allowed)
-    # No allow-list yet: fall back to subject hints so we don't grab everything.
-    subj = (msg.get("Subject") or "").lower()
-    return any(h in subj for h in ecfg.get("subject_hints", []))
+def extract_flyer_link(html: str, ecfg: dict) -> str | None:
+    """Score anchors by text/alt/url against link_keywords; skip link_exclude."""
+    kws = [k.lower() for k in ecfg.get("link_keywords", [])]
+    excl = [e.lower() for e in ecfg.get("link_exclude", [])]
+    best, best_score = None, 0
+    for m in re.finditer(r'<a\b[^>]*href="([^"]+)"[^>]*>(.*?)</a>', html, re.I | re.S):
+        url, inner = m.group(1), m.group(2)
+        u = url.lower()
+        if u.startswith(("mailto:", "tel:", "#")):
+            continue
+        text = re.sub(r"<[^>]+>", " ", inner)
+        text += " " + " ".join(re.findall(r'alt="([^"]*)"', inner, re.I))
+        text = re.sub(r"\s+", " ", text).strip().lower()
+        if any(e in u or e in text for e in excl):
+            continue
+        score = sum(2 for k in kws if k in text) + sum(1 for k in kws if k in u)
+        if score > best_score:
+            best, best_score = url, score
+    return best
 
 
-def _match(sender: str, pattern: str) -> bool:
-    if pattern.startswith("*."):
-        return sender.endswith(pattern[1:])
-    return sender == pattern
+# --- helpers ---------------------------------------------------------------
 
-
-def _save_attachments(msg: Message, work: Path, sender: str) -> list[Path]:
-    out: list[Path] = []
-    for part in msg.walk():
-        ctype = part.get_content_type()
-        if ctype in ("application/pdf",) or ctype.startswith("image/"):
-            fn = part.get_filename() or f"{sender}-{len(out)}"
-            payload = part.get_payload(decode=True)
-            if not payload:
-                continue
-            dest = work / f"{sender}__{fn}"
-            dest.write_bytes(payload)
-            out.append(dest)
+def _store_senders(cfg: dict) -> list[tuple[str, str]]:
+    out: list[tuple[str, str]] = []
+    for s in cfg.get("stores", []):
+        for pat in (s.get("senders") or []):
+            out.append((s["name"], pat.lower()))
     return out
+
+
+def _store_for(sender: str, mapping: list[tuple[str, str]]) -> str | None:
+    sender = sender.lower()
+    for store, pat in mapping:
+        if (pat.startswith("*.") and sender.endswith(pat[1:])) or sender == pat:
+            return store
+    return None
+
+
+def _decode(raw: str) -> str:
+    parts = []
+    for txt, enc in decode_header(raw):
+        if isinstance(txt, bytes):
+            parts.append(txt.decode(enc or "utf-8", "ignore"))
+        else:
+            parts.append(txt)
+    return "".join(parts)
+
+
+def _html_body(msg: Message) -> str | None:
+    html = ""
+    for part in msg.walk():
+        if part.get_content_type() == "text/html":
+            payload = part.get_payload(decode=True)
+            if payload:
+                html += payload.decode(part.get_content_charset() or "utf-8", "ignore")
+    return html or None

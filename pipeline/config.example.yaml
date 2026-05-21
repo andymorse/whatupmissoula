@@ -14,26 +14,36 @@ ai:
   image_max_px: 1600           # downscale long edge before sending
 
 email:
-  # Only messages from these senders/domains are treated as flyers.
-  # Discovered from the live mailbox 2026-05-21 (so far only welcome emails;
-  # confirm/extend once real weekly-ad emails arrive).
   lookback_days: 8
-  allowed_senders:
-    - "info@rosauers.com"
-    - "communications@email.goodfoodstore.com"
-    - "*.albertsons.com"            # albertsons@p..., no-reply@groceries...
-    - "no-reply@yokesfreshmarkets.com"   # likely the Super1 source — CONFIRM
-  subject_hints: ["weekly ad", "this week", "flyer", "deals", "savings", "ad"]
-  # NOTE: these senders link out to a web-hosted flyer (often Flipp) rather than
-  # attaching it. The extractor must follow the "view ad" link, not read an
-  # attachment. Build that once a real weekly-ad email is in hand.
+  # A flyer email must come from a known store sender (stores[].senders below)
+  # AND its subject must match one of these hints — this keeps welcome/receipt/
+  # account emails out. Tune once real weekly-ad emails arrive.
+  subject_hints:
+    ["weekly ad", "weekly specials", "this week", "this week's", "deals",
+     "savings", "sale", "specials", "ad is here", "fresh deals", "save big"]
+  # The flyer email links to a web-hosted ad (tracking redirect → Flipp/SPA).
+  # We pick the anchor whose text/url best matches these, skipping the excludes,
+  # then render that URL with web_flyer (headless browser follows the redirect).
+  link_keywords:
+    ["weekly ad", "view ad", "view the ad", "see the ad", "shop the ad",
+     "browse the ad", "this week", "weekly specials", "circular", "flyer",
+     "deals", "savings", "specials"]
+  link_exclude:
+    ["unsubscribe", "preferences", "privacy", "profile", "manage", "opt out",
+     "update your", "facebook", "instagram", "twitter", "x.com", "youtube",
+     "tiktok", "pinterest", "mailto:", "app store", "google play", "apps.apple"]
 
-# Email-confirmed stores (mirror ai/guidance.md §2). Web-flyer stores rendered
-# from their ad page (Orange Street Food Farm, Costco) are a later phase.
-# WinCo is excluded — no weekly ad (footer explains this to readers).
+# Stores in scope (mirror ai/guidance.md §2). `senders` maps a store to the
+# addresses its flyer emails come from (supports "*.domain" wildcards). The
+# store name here is just a hint — the AI confirms the real store from the ad.
+# Senders below are GUESSES from welcome emails (2026-05-21) — CONFIRM with a
+# real weekly-ad email. WinCo is excluded (no weekly ad).
 stores:
   - name: "Rosauers"
-  - name: "Super1 Stevensville"
-  - name: "Super1 Hamilton"
+    senders: ["info@rosauers.com", "*.rosauers.com"]
   - name: "Good Food Store"
+    senders: ["communications@email.goodfoodstore.com", "*.goodfoodstore.com"]
   - name: "Albertsons"
+    senders: ["*.albertsons.com"]
+  - name: "Super1"          # Stevensville + Hamilton; AI reads location from ad
+    senders: ["no-reply@yokesfreshmarkets.com", "*.yokesfreshmarkets.com"]

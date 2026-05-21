@@ -73,16 +73,30 @@ def main() -> int:
         print(f"  → {len(flyers)} image tile(s); analyzing with AI…")
         report = analyze(flyers, week_of, cfg)
     else:
-        from email_fetch import fetch_flyer_attachments
-        from extract import to_flyer_images
+        # Default weekly path: fetch flyer emails → render each linked ad → analyze.
+        from email_fetch import fetch_flyer_emails
+        from web_flyer import render_flyer
         from analyze import analyze
 
-        work = HERE / ".cache" / week_of
-        attachments = fetch_flyer_attachments(cfg, work)
-        if not attachments:
-            print("No flyer attachments found this week — nothing to do.", file=sys.stderr)
+        emails = fetch_flyer_emails(cfg)
+        if not emails:
+            print("No flyer emails found this week — nothing to do.", file=sys.stderr)
             return 1
-        flyers = to_flyer_images(attachments, cfg)
+        print(f"Found {len(emails)} flyer email(s):")
+        flyers = []
+        for fe in emails:
+            if not fe.flyer_url:
+                print(f"  ! {fe.store}: no flyer link found in email — skipping", file=sys.stderr)
+                continue
+            print(f"  • {fe.store}: rendering {fe.flyer_url[:70]}…")
+            try:
+                flyers += render_flyer(fe.flyer_url, fe.store)
+            except Exception as e:                 # one blocked store shouldn't sink the run
+                print(f"  ! {fe.store}: render failed ({e}) — skipping", file=sys.stderr)
+        if not flyers:
+            print("Could not render any flyer this week — nothing to do.", file=sys.stderr)
+            return 1
+        print(f"  → {len(flyers)} image tile(s); analyzing with AI…")
         report = analyze(flyers, week_of, cfg)
 
     path = render(report, draft_dir)

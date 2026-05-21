@@ -87,8 +87,11 @@ Three input paths feed the same analyze→render chain:
 - **web flyer** (`web_flyer.py`) — headless render → vision; the main path, since
   most flyers (even the "email" stores) link to a web-hosted ad.
 - **manual drop** (`--images`) — for stores we can't render (bot-walled) or one-offs.
-- **email** (`email_fetch.py`) — supplies the trigger + "view ad" link; wiring this
-  to the renderer is pending a real weekly-ad email landing in the mailbox.
+- **email** (`email_fetch.py`) — the default weekly path: find flyer emails (known
+  store sender + flyer-ish subject), pull the "view the ad" link from the HTML, and
+  render it via `web_flyer`. Wired and validated against the live mailbox (welcome
+  emails are correctly skipped); sender/subject/link patterns in `config.yaml` get a
+  final tune when the first real weekly-ad email lands. Just run `python pipeline/run.py`.
 
 **Extra dependency:** the `chromium` binary must be on PATH (`apt install chromium`).
 
