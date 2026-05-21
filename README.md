@@ -72,14 +72,23 @@ sliced into tiles, Claude extracts ~40 deals with accurate prices + normalized
 unit prices, and the branded static site builds. Try it:
 
 ```bash
+# A) Render a web flyer page
 python pipeline/run.py --url "https://orangestreetfoodfarm.com/weekly-ads/901" \
                        --store "Orange Street Food Farm"
+
+# B) Manual drop — analyze flyer image(s)/PDF(s) you saved yourself.
+#    Put files in a store-named subfolder (folder name = store), or pass a
+#    single file with --store. Handy for Cloudflare-walled stores (e.g. Costco).
+python pipeline/run.py --images ~/flyers          # ~/flyers/Costco/ad.pdf, etc.
+python pipeline/run.py --images ad.png --store "Costco"
 ```
 
-Most flyers (even the "email" stores) link to a web-hosted ad rather than
-attaching it, so `web_flyer.py` (headless render → vision) is the main input
-path; `email_fetch.py` supplies the trigger + link. The email→link wiring is
-pending a real weekly-ad email landing in the mailbox.
+Three input paths feed the same analyze→render chain:
+- **web flyer** (`web_flyer.py`) — headless render → vision; the main path, since
+  most flyers (even the "email" stores) link to a web-hosted ad.
+- **manual drop** (`--images`) — for stores we can't render (bot-walled) or one-offs.
+- **email** (`email_fetch.py`) — supplies the trigger + "view ad" link; wiring this
+  to the renderer is pending a real weekly-ad email landing in the mailbox.
 
 **Extra dependency:** the `chromium` binary must be on PATH (`apt install chromium`).
 

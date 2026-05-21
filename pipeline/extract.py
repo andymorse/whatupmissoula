@@ -1,8 +1,12 @@
-"""Turn fetched attachments (PDFs/images) into model-ready FlyerImage pages.
+"""Turn flyer files (PDFs/images) into model-ready FlyerImage pages.
 
-PDFs are rasterized one image per page (capped); images are downscaled so we
-don't blow token budget. The store hint is derived from the saved filename
-prefix (sender), to be refined by the model from the flyer content itself.
+Used by two input paths:
+- email attachments (store hint comes from the saved filename's sender prefix)
+- the manual `--images <dir>` drop (store hint comes from --store or a subfolder)
+
+PDF pages are rasterized; images are downscaled to stay within token budget, and
+very tall images (e.g. a full stitched flyer screenshot) are sliced into tiles so
+prices stay legible instead of being shrunk to mush.
 """
 from __future__ import annotations
 
@@ -14,32 +18,76 @@ from PIL import Image
 
 from providers.base import FlyerImage
 
+IMG_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp"}
+FLYER_EXTS = IMG_EXTS | {".pdf"}
+
+
+def gather_flyer_files(root: str | Path, default_store: str | None = None) -> list[tuple[Path, str]]:
+    """Collect (path, store_hint) pairs from a file or directory.
+
+    A flat file uses default_store (or its filename stem). For a directory, files
+    inside a subfolder take that subfolder's name as the store hint — so you can
+    organize drops like  images/Rosauers/ad.jpg, images/Albertsons/page1.png.
+    """
+    root = Path(root)
+    if root.is_file():
+        return [(root, default_store or root.stem)]
+    pairs: list[tuple[Path, str]] = []
+    for p in sorted(root.rglob("*")):
+        if p.is_file() and p.suffix.lower() in FLYER_EXTS:
+            hint = p.parent.name if p.parent != root else (default_store or p.stem)
+            pairs.append((p, hint))
+    return pairs
+
 
 def to_flyer_images(paths: list[Path], cfg: dict) -> list[FlyerImage]:
+    """Email/attachment path: hint from the saved filename's 'sender__' prefix."""
+    pairs = [(p, p.name.split("__", 1)[0]) for p in paths]
+    return to_flyer_images_pairs(pairs, cfg)
+
+
+def to_flyer_images_pairs(pairs: list[tuple[Path, str]], cfg: dict) -> list[FlyerImage]:
     ai = cfg.get("ai", {})
     max_pages = ai.get("max_pages_per_flyer", 8)
     max_px = ai.get("image_max_px", 1600)
 
     flyers: list[FlyerImage] = []
-    for p in paths:
-        hint = p.name.split("__", 1)[0]
-        if p.suffix.lower() == ".pdf":
-            flyers += _pdf_pages(p, hint, max_pages, max_px)
+    for path, hint in pairs:
+        if path.suffix.lower() == ".pdf":
+            flyers += _pdf_pages(path, hint, max_pages, max_px)
         else:
-            flyers.append(_image_file(p, hint, max_px))
+            flyers += _image_to_flyers(Image.open(path).convert("RGB"), hint, max_px)
     return flyers
-
-
-def _image_file(path: Path, hint: str, max_px: int) -> FlyerImage:
-    img = Image.open(path).convert("RGB")
-    return _encode(img, hint, max_px)
 
 
 def _pdf_pages(path: Path, hint: str, max_pages: int, max_px: int) -> list[FlyerImage]:
     from pdf2image import convert_from_path  # needs poppler installed on host
 
-    pages = convert_from_path(str(path), dpi=150)[:max_pages]
-    return [_encode(pg.convert("RGB"), hint, max_px) for pg in pages]
+    out: list[FlyerImage] = []
+    for pg in convert_from_path(str(path), dpi=150)[:max_pages]:
+        out += _image_to_flyers(pg.convert("RGB"), hint, max_px)
+    return out
+
+
+def _image_to_flyers(img: Image.Image, hint: str, max_px: int,
+                     tile_h: int = 1600, overlap: int = 140) -> list[FlyerImage]:
+    """Single tile for normal images; slice vertically for very tall ones."""
+    w, h = img.size
+    if h <= tile_h * 1.3:
+        return [_encode(img, hint, max_px)]
+    # Tall image: downscale width if needed, then slice into overlapping tiles.
+    if w > max_px:
+        img = img.resize((max_px, int(h * max_px / w)))
+        w, h = img.size
+    tiles: list[FlyerImage] = []
+    y = 0
+    while y < h:
+        bottom = min(y + tile_h, h)
+        tiles.append(_encode(img.crop((0, y, w, bottom)), hint, max_px))
+        if bottom >= h:
+            break
+        y = bottom - overlap
+    return tiles
 
 
 def _encode(img: Image.Image, hint: str, max_px: int) -> FlyerImage:

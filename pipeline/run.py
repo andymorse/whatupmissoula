@@ -32,7 +32,9 @@ def main() -> int:
     ap.add_argument("--sample", action="store_true", help="render bundled sample, no network")
     ap.add_argument("--publish", action="store_true", help="promote draft to live")
     ap.add_argument("--url", help="render a single web flyer URL (testing)")
-    ap.add_argument("--store", default="Flyer", help="store name for --url")
+    ap.add_argument("--images", help="analyze flyer image(s)/PDF(s) from a file or folder")
+    ap.add_argument("--store", default=None,
+                    help="store name for --url, or default store for --images")
     args = ap.parse_args()
 
     cfg = load_config()
@@ -55,7 +57,19 @@ def main() -> int:
         from web_flyer import render_flyer
         from analyze import analyze
         print(f"Rendering web flyer: {args.url}")
-        flyers = render_flyer(args.url, args.store)
+        flyers = render_flyer(args.url, args.store or "Flyer")
+        print(f"  → {len(flyers)} image tile(s); analyzing with AI…")
+        report = analyze(flyers, week_of, cfg)
+    elif args.images:
+        from extract import gather_flyer_files, to_flyer_images_pairs
+        from analyze import analyze
+        pairs = gather_flyer_files(args.images, args.store)
+        if not pairs:
+            print(f"No image/PDF flyers found at {args.images}", file=sys.stderr)
+            return 1
+        stores = sorted({h for _, h in pairs})
+        print(f"Found {len(pairs)} flyer file(s) across {len(stores)} store(s): {', '.join(stores)}")
+        flyers = to_flyer_images_pairs(pairs, cfg)
         print(f"  → {len(flyers)} image tile(s); analyzing with AI…")
         report = analyze(flyers, week_of, cfg)
     else:
