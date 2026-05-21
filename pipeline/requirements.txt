@@ -1,0 +1,7 @@
+# Offline weekly pipeline dependencies
+anthropic>=0.40.0      # Claude API provider
+PyYAML>=6.0            # config
+Jinja2>=3.1            # static site rendering
+pdf2image>=1.17        # PDF flyers -> page images for vision
+Pillow>=10.0           # image handling / downscaling
+python-dotenv>=1.0     # load .env

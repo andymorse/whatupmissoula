@@ -1,0 +1,33 @@
+# Copy to config.yaml and adjust. Secrets stay in .env, not here.
+
+site:
+  name: "What's Up Missoula"
+  base_url: "https://whatsupmissoula.com"   # confirm final domain/spelling
+  output_dir: "../site/output"               # rendered static site (live)
+  draft_dir: "drafts"                          # rendered draft, pre-review
+
+ai:
+  provider: "claude"          # overridden by AI_PROVIDER env if set
+  model: "claude-opus-4-7"
+  guidance_file: "../ai/guidance.md"
+  max_pages_per_flyer: 8       # cap vision input per flyer
+  image_max_px: 1600           # downscale long edge before sending
+
+email:
+  # Only messages from these senders/domains are treated as flyers.
+  # Confirm + extend once the mailbox is subscribed to store lists.
+  lookback_days: 8
+  allowed_senders: []          # e.g. ["news@rosauers.com", "*.albertsons.com"]
+  subject_hints: ["weekly ad", "this week", "flyer", "deals", "savings"]
+
+# Stores in scope mirror ai/guidance.md §2 — keep them in sync.
+stores:
+  - name: "Albertsons"
+  - name: "Rosauers"
+  - name: "Town & Country"
+  - name: "WinCo Foods"
+  - name: "Super 1 Foods"
+  - name: "Orange Street Food Farm"
+  - name: "Good Food Store"
+  - name: "Costco"
+    members_only: true

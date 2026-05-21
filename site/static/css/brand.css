@@ -1,0 +1,120 @@
+/* What's Up Missoula — built on the Fractional design system.
+   Tokens lifted from the Fractional IT brand guide; only the name differs. */
+
+:root {
+  --navy:       #025492;
+  --navy-dark:  #01375f;
+  --navy-deep:  #0a1628;
+  --gold:       #ffc900;
+  --gold-dark:  #b27409;
+  --sky:        #65c6f4;
+  --warm-white: #fffff6;
+  --gray-100:   #f0f4f8;
+  --gray-400:   #9ca3af;
+  --gray-600:   #4b5563;
+  --white:      #ffffff;
+
+  --radius:     12px;
+  --radius-lg:  20px;
+  --shadow-sm:  0 2px 8px  rgba(2,84,146,0.08);
+  --shadow-md:  0 8px 32px rgba(2,84,146,0.13);
+  --shadow-lg:  0 20px 60px rgba(2,84,146,0.18);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--gray-600);
+  background: var(--gray-100);
+}
+
+h1, h2, h3, .label, nav, .btn { font-family: 'Montserrat', sans-serif; }
+
+.container { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+
+/* --- Header / hero --- */
+.hero {
+  background: linear-gradient(145deg, #0a1628 0%, #01375f 45%, #025492 100%);
+  color: var(--white);
+  padding: 56px 0 64px;
+  position: relative;
+}
+.hero .brand { display: flex; align-items: center; gap: 14px; margin-bottom: 40px; }
+.hero .brand img { height: 40px; }
+.hero .brand span {
+  font-weight: 800; font-size: 18px; letter-spacing: -0.5px; color: var(--white);
+}
+.label {
+  font-size: 11px; font-weight: 700; letter-spacing: 2.5px;
+  text-transform: uppercase; color: var(--gold); margin-bottom: 12px;
+  display: inline-block;
+}
+.hero h1 {
+  font-size: clamp(36px, 6vw, 60px); font-weight: 800;
+  letter-spacing: -1.5px; line-height: 1.05; margin-bottom: 14px;
+}
+.hero h1 em { color: var(--gold); font-style: normal; }
+.hero .sub { color: rgba(255,255,255,0.72); max-width: 640px; }
+
+/* --- Best store banner --- */
+.best {
+  background: var(--warm-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 32px 36px;
+  margin: -36px auto 0;
+  position: relative;
+  max-width: 1124px;
+  border-left: 6px solid var(--gold);
+}
+.best .label { color: var(--gold-dark); }
+.best h2 { font-size: clamp(26px, 3.8vw, 38px); color: var(--navy-deep); font-weight: 700; }
+.best p { margin-top: 8px; color: var(--gray-600); }
+
+/* --- Sections --- */
+.section { padding: 64px 0; }
+.section h2 { font-size: clamp(24px, 3.4vw, 34px); color: var(--navy-deep); margin-bottom: 6px; }
+.section .label { color: var(--gold-dark); }
+
+/* --- Top steals strip --- */
+.steals { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; }
+.steal {
+  background: var(--white); border-radius: var(--radius); padding: 18px 20px;
+  box-shadow: var(--shadow-sm); transition: all 0.3s ease;
+}
+.steal:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.steal .store { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--navy); }
+.steal .item { color: var(--navy-deep); font-weight: 600; margin: 4px 0; }
+.steal .price { font-family: 'Montserrat'; font-weight: 800; font-size: 24px; color: var(--gold-dark); }
+.steal .unit { font-size: 13px; color: var(--gray-400); }
+
+/* --- Store blocks --- */
+.store-block { background: var(--white); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); padding: 28px 32px; margin-bottom: 22px; }
+.store-block h3 { font-size: 24px; font-weight: 700; color: var(--navy-deep); }
+.store-block .dates { font-size: 13px; color: var(--gray-400); margin-bottom: 16px; }
+
+table.deals { width: 100%; border-collapse: collapse; }
+table.deals th {
+  text-align: left; font-family: 'Montserrat'; font-size: 10px; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase; color: var(--gray-400);
+  padding: 8px 10px; border-bottom: 2px solid var(--gray-100);
+}
+table.deals td { padding: 11px 10px; border-bottom: 1px solid var(--gray-100); vertical-align: top; }
+table.deals .sale { font-weight: 700; color: var(--navy-deep); }
+table.deals .reg { color: var(--gray-400); text-decoration: line-through; font-size: 14px; }
+.pct { display: inline-block; background: rgba(255,201,0,0.16); color: var(--gold-dark);
+  font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 100px; }
+.caveat { display: inline-block; font-size: 11px; color: var(--gray-400); border: 1px solid var(--gray-100);
+  border-radius: 100px; padding: 1px 8px; margin: 1px 2px; }
+
+/* --- Footer --- */
+footer { background: var(--navy-deep); color: rgba(255,255,255,0.72); padding: 40px 0; font-size: 13px; }
+footer a { color: var(--sky); text-decoration: none; }
+
+@media (max-width: 768px) {
+  .section { padding: 44px 0; }
+  table.deals .unit-col { display: none; }
+}

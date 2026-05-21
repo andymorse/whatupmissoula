@@ -1,0 +1,82 @@
+{% extends "base.html.j2" %}
+{% block title %}What's Up Missoula — Best Grocery Deals, Week of {{ report.week_of }}{% endblock %}
+{% block body %}
+<header class="hero">
+  <div class="container">
+    <div class="brand">
+      <img src="/static/img/logo.png" alt="Fractional logo" onerror="this.style.display='none'">
+      <span>What's Up Missoula</span>
+    </div>
+    <span class="label">Missoula grocery deals · Week of {{ report.week_of }}</span>
+    <h1>This week's <em>best deals</em>, in one place.</h1>
+    {% if report.generated_note %}<p class="sub">{{ report.generated_note }}</p>{% endif %}
+  </div>
+</header>
+
+{% if report.best_store %}
+<div class="container">
+  <div class="best">
+    <span class="label">Best store this week</span>
+    <h2>{{ report.best_store.name }}</h2>
+    <p>{{ report.best_store.reason }}</p>
+  </div>
+</div>
+{% endif %}
+
+{% if report.top_steals %}
+<section class="section">
+  <div class="container">
+    <span class="label">Don't miss</span>
+    <h2>Top steals across town</h2>
+    <div class="steals" style="margin-top:24px">
+      {% for s in report.top_steals %}
+      <div class="steal">
+        <div class="store">{{ s.store }}</div>
+        <div class="item">{{ s.item }}</div>
+        {% if s.sale_price is not none %}<div class="price">${{ '%.2f'|format(s.sale_price) }}</div>{% endif %}
+        {% if s.unit and s.unit_price is not none %}<div class="unit">{{ '%.2f'|format(s.unit_price) }} {{ s.unit }}</div>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="section" style="background:var(--warm-white)">
+  <div class="container">
+    <span class="label">Store by store</span>
+    <h2>Every deal, by store</h2>
+    <div style="margin-top:24px">
+      {% for store in report.stores %}
+      <div class="store-block">
+        <h3>{{ store.name }}</h3>
+        <div class="dates">
+          {% if store.valid_from %}{{ store.valid_from }} – {{ store.valid_through }}{% endif %}
+          {% if not store.in_scope %}<span class="caveat">not a tracked store</span>{% endif %}
+        </div>
+        <table class="deals">
+          <thead>
+            <tr><th>Item</th><th>Sale</th><th>Reg</th><th class="unit-col">Unit price</th><th>Notes</th></tr>
+          </thead>
+          <tbody>
+            {% for d in store.deals %}
+            <tr>
+              <td>{{ d.item }}</td>
+              <td class="sale">{% if d.sale_price is not none %}${{ '%.2f'|format(d.sale_price) }}{% else %}—{% endif %}</td>
+              <td>{% if d.regular_price is not none %}<span class="reg">${{ '%.2f'|format(d.regular_price) }}</span>{% endif %}
+                  {% if d.percent_off %}<span class="pct">{{ d.percent_off }}% off</span>{% endif %}</td>
+              <td class="unit-col">{% if d.unit_price is not none %}{{ '%.2f'|format(d.unit_price) }} {{ d.unit }}{% endif %}</td>
+              <td>
+                {% if d.requires_loyalty %}<span class="caveat">loyalty</span>{% endif %}
+                {% for c in d.caveats %}<span class="caveat">{{ c }}</span>{% endfor %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

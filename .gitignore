@@ -1,0 +1,18 @@
+# Secrets — never commit
+.env
+*.env
+pipeline/config.yaml
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Generated site output and working data
+site/output/
+pipeline/.cache/
+pipeline/drafts/
+*.eml
+
+# OS / editor
+.DS_Store

@@ -1,0 +1,37 @@
+{
+  "week_of": "2026-05-18",
+  "generated_note": "Eggs and chicken are the story this week — Rosauers and WinCo both cut staples deep.",
+  "best_store": {
+    "name": "Rosauers",
+    "reason": "Best all-around basket this week: eggs under $2, ground beef at $2.99/lb, and in-season strawberries cheap. Most of it needs the Club Card, but the everyday staples win it."
+  },
+  "top_steals": [
+    { "store": "WinCo Foods", "item": "Boneless skinless chicken breast", "sale_price": 1.77, "unit": "$/lb", "unit_price": 1.77, "caveats": [] },
+    { "store": "Rosauers", "item": "Large Grade A eggs, dozen", "sale_price": 1.99, "unit": "$/dozen", "unit_price": 1.99, "caveats": ["with Club Card", "limit 4"] },
+    { "store": "Super 1 Foods", "item": "Strawberries, 1 lb", "sale_price": 1.49, "unit": "$/lb", "unit_price": 1.49, "caveats": [] },
+    { "store": "Albertsons", "item": "Tillamook cheese, 8 oz", "sale_price": 2.50, "unit": "$/oz", "unit_price": 0.31, "caveats": ["buy 4"] }
+  ],
+  "stores": [
+    {
+      "name": "Rosauers",
+      "in_scope": true,
+      "valid_from": "2026-05-18",
+      "valid_through": "2026-05-24",
+      "deals": [
+        { "item": "Large Grade A eggs, dozen", "category": "dairy_eggs", "sale_price": 1.99, "regular_price": 3.49, "unit": "$/dozen", "unit_price": 1.99, "requires_loyalty": true, "caveats": ["limit 4"], "confidence": "high", "note": null },
+        { "item": "Ground beef, 80/20", "category": "meat_seafood", "sale_price": 2.99, "regular_price": 4.99, "unit": "$/lb", "unit_price": 2.99, "requires_loyalty": false, "caveats": [], "confidence": "high", "note": null },
+        { "item": "Strawberries, 1 lb", "category": "produce", "sale_price": 1.99, "regular_price": 3.99, "unit": "$/lb", "unit_price": 1.99, "requires_loyalty": true, "caveats": [], "confidence": "medium", "note": null }
+      ]
+    },
+    {
+      "name": "WinCo Foods",
+      "in_scope": true,
+      "valid_from": "2026-05-18",
+      "valid_through": "2026-05-24",
+      "deals": [
+        { "item": "Boneless skinless chicken breast", "category": "meat_seafood", "sale_price": 1.77, "regular_price": 2.98, "unit": "$/lb", "unit_price": 1.77, "requires_loyalty": false, "caveats": [], "confidence": "high", "note": null },
+        { "item": "Russet potatoes, 10 lb bag", "category": "produce", "sale_price": 2.98, "regular_price": null, "unit": "$/lb", "unit_price": 0.30, "requires_loyalty": false, "caveats": [], "confidence": "high", "note": null }
+      ]
+    }
+  ]
+}
