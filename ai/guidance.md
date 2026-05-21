@@ -20,14 +20,19 @@ overall grocery value this week. Output strict JSON matching the schema in §7.
 
 > ⚠️ CONFIRM/EDIT THIS LIST. Starter set for Missoula:
 
-- Albertsons
+Confirmed
 - Rosauers
-- Town & Country (Orange St and Reserve St)
-- WinCo Foods
-- Super 1 Foods
-- Orange Street Food Farm
+- Super1 Stevensville
+- Super1 Hamilton
 - Good Food Store
+- Albertsons
+
+
+No Email Hold off for now
+- Orange Street Food Farm (Orange St and Reserve St) -https://orangestreetfoodfarm.com/weekly-ads when you click on the ad moves to https://orangestreetfoodfarm.com/weekly-ads/901
+- Winco - https://www.wincofoods.com/store-events#%2F
 - Costco (note: membership required; flag deals as members-only)
+
 
 If a flyer is from a store **not** on this list, still parse it but set
 `store.in_scope = false` and note it. If a store sent no flyer this week, omit
