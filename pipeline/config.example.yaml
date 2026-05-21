@@ -15,19 +15,24 @@ ai:
 
 email:
   # Only messages from these senders/domains are treated as flyers.
-  # Confirm + extend once the mailbox is subscribed to store lists.
+  # Discovered from the live mailbox 2026-05-21 (so far only welcome emails;
+  # confirm/extend once real weekly-ad emails arrive).
   lookback_days: 8
-  allowed_senders: []          # e.g. ["news@rosauers.com", "*.albertsons.com"]
-  subject_hints: ["weekly ad", "this week", "flyer", "deals", "savings"]
+  allowed_senders:
+    - "info@rosauers.com"
+    - "communications@email.goodfoodstore.com"
+    - "*.albertsons.com"            # albertsons@p..., no-reply@groceries...
+    - "no-reply@yokesfreshmarkets.com"   # likely the Super1 source — CONFIRM
+  subject_hints: ["weekly ad", "this week", "flyer", "deals", "savings", "ad"]
+  # NOTE: these senders link out to a web-hosted flyer (often Flipp) rather than
+  # attaching it. The extractor must follow the "view ad" link, not read an
+  # attachment. Build that once a real weekly-ad email is in hand.
 
-# Stores in scope mirror ai/guidance.md §2 — keep them in sync.
+# Email-confirmed stores (mirror ai/guidance.md §2). The web-scrape-only stores
+# (Orange Street Food Farm, WinCo, Costco) are handled in a later phase.
 stores:
-  - name: "Albertsons"
   - name: "Rosauers"
-  - name: "Town & Country"
-  - name: "WinCo Foods"
-  - name: "Super 1 Foods"
-  - name: "Orange Street Food Farm"
+  - name: "Super1 Stevensville"
+  - name: "Super1 Hamilton"
   - name: "Good Food Store"
-  - name: "Costco"
-    members_only: true
+  - name: "Albertsons"
