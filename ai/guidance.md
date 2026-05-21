@@ -18,20 +18,20 @@ overall grocery value this week. Output strict JSON matching the schema in §7.
 
 ## 2. Stores in scope
 
-> ⚠️ CONFIRM/EDIT THIS LIST. Starter set for Missoula:
-
-Confirmed
+Confirmed (weekly-ad emails)
 - Rosauers
 - Super1 Stevensville
 - Super1 Hamilton
 - Good Food Store
 - Albertsons
 
-
-No Email Hold off for now
-- Orange Street Food Farm (Orange St and Reserve St) -https://orangestreetfoodfarm.com/weekly-ads when you click on the ad moves to https://orangestreetfoodfarm.com/weekly-ads/901
-- Winco - https://www.wincofoods.com/store-events#%2F
+Web flyer (rendered from the store's weekly-ad page)
+- Orange Street Food Farm (Orange St and Reserve St) - https://orangestreetfoodfarm.com/weekly-ads → https://orangestreetfoodfarm.com/weekly-ads/901
 - Costco (note: membership required; flag deals as members-only)
+
+Not covered — no weekly ad
+- WinCo — everyday-low-price store with no weekly sales ad, so we have nothing
+  to pull from. Excluded from comparisons (the site footer says so).
 
 
 If a flyer is from a store **not** on this list, still parse it but set

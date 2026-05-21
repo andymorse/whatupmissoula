@@ -28,8 +28,9 @@ email:
   # attaching it. The extractor must follow the "view ad" link, not read an
   # attachment. Build that once a real weekly-ad email is in hand.
 
-# Email-confirmed stores (mirror ai/guidance.md §2). The web-scrape-only stores
-# (Orange Street Food Farm, WinCo, Costco) are handled in a later phase.
+# Email-confirmed stores (mirror ai/guidance.md §2). Web-flyer stores rendered
+# from their ad page (Orange Street Food Farm, Costco) are a later phase.
+# WinCo is excluded — no weekly ad (footer explains this to readers).
 stores:
   - name: "Rosauers"
   - name: "Super1 Stevensville"
