@@ -31,6 +31,8 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="What's Up Missoula weekly job")
     ap.add_argument("--sample", action="store_true", help="render bundled sample, no network")
     ap.add_argument("--publish", action="store_true", help="promote draft to live")
+    ap.add_argument("--url", help="render a single web flyer URL (testing)")
+    ap.add_argument("--store", default="Flyer", help="store name for --url")
     args = ap.parse_args()
 
     cfg = load_config()
@@ -49,6 +51,13 @@ def main() -> int:
 
     if args.sample:
         report = WeeklyReport.from_dict(json.loads((HERE / "sample_report.json").read_text()))
+    elif args.url:
+        from web_flyer import render_flyer
+        from analyze import analyze
+        print(f"Rendering web flyer: {args.url}")
+        flyers = render_flyer(args.url, args.store)
+        print(f"  → {len(flyers)} image tile(s); analyzing with AI…")
+        report = analyze(flyers, week_of, cfg)
     else:
         from email_fetch import fetch_flyer_attachments
         from extract import to_flyer_images

@@ -50,8 +50,9 @@ pipeline/                 The offline weekly job (Python)
   run.py                  Orchestrator
   config.example.yaml     Stores, IMAP host, model, thresholds, paths
   schema.py               Deal / StoreWeek / WeeklyReport data models
-  email_fetch.py          Read-only IMAP fetch + attachment extraction
-  extract.py              Normalize PDFs/images for the model
+  email_fetch.py          Read-only IMAP fetch (trigger + flyer link)
+  web_flyer.py            Headless-Chromium render of a web flyer → image tiles
+  extract.py              Normalize PDF/image attachments for the model
   analyze.py              Build prompt from guidance, call provider, parse
   render.py               Jinja2 → static HTML draft
   publish.py              Promote draft → live
@@ -65,9 +66,22 @@ docs/deploy.md            VPS hardening, cron, Nginx (deployment phase)
 
 ## Status
 
-Scaffold + brand styling + AI guidance are in place. Email fetch / extract /
-analyze / render are starting implementations to be validated against real
-sample flyers (need: a few flyer emails in the mailbox + an Anthropic API key).
+**End-to-end works.** Verified against a real web flyer (Orange Street Food
+Farm): headless Chromium renders the JS-based weekly-ad page, the image is
+sliced into tiles, Claude extracts ~40 deals with accurate prices + normalized
+unit prices, and the branded static site builds. Try it:
+
+```bash
+python pipeline/run.py --url "https://orangestreetfoodfarm.com/weekly-ads/901" \
+                       --store "Orange Street Food Farm"
+```
+
+Most flyers (even the "email" stores) link to a web-hosted ad rather than
+attaching it, so `web_flyer.py` (headless render → vision) is the main input
+path; `email_fetch.py` supplies the trigger + link. The email→link wiring is
+pending a real weekly-ad email landing in the mailbox.
+
+**Extra dependency:** the `chromium` binary must be on PATH (`apt install chromium`).
 
 ## Local dev
 
