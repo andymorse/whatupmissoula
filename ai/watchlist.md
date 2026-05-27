@@ -28,6 +28,13 @@ Edit either list freely — changes here change what the page highlights next ru
   classic cheddar, shells & white cheddar, etc.)
 - Goodles mac and cheese (classic cheddar — that's the flavor we want called
   out; other Goodles flavors are fine to flag too but the cheddar is the one)
+- Wilcoxson's ice cream (Montana-made, Livingston MT — any flavor / any size:
+  pints, quarts, half-gallons)
+- Tillamook ice cream (any flavor — typically the 1.5 qt / 48 oz cartons, but
+  pints/scoops count too)
+- Tillamook cheese — blocks only (loaf / brick / chunk; any variety: medium
+  cheddar, sharp cheddar, pepper jack, etc.). Do NOT flag shredded, sliced,
+  or string cheese — those are different products even though the brand matches.
 
 
 ## ai_picks
