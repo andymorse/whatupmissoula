@@ -82,6 +82,28 @@ stores. Pick the natural unit for the item:
 - If the package size isn't legible, set `unit_price` null and note it — don't
   fabricate a size.
 
+## 5b. Watchlist (flag items the household cares about)
+
+A second document — `ai/watchlist.md` — is appended below this guidance at run
+time. It contains two lists of items the household wants surfaced when they
+appear on sale:
+
+- `my_picks` — the site owner's personal list. Authoritative.
+- `ai_picks` — a default set of staples worth tracking weekly.
+
+For every Deal you emit, check whether the item matches anything on either
+list. If it does, set `watchlist_hit: true` and `watchlist_source` to `"mine"`
+(if it matches `my_picks`) or `"ai"` (if it matches only `ai_picks`). If a
+deal matches both lists, prefer `"mine"`. Match liberally on item identity —
+synonyms, brand variants, and reasonable size variations count — but do not
+flag obvious non-matches just because a word overlaps (e.g. "milk chocolate"
+is not a milk match). If neither list has the item, leave the fields at their
+defaults (`watchlist_hit: false`, `watchlist_source: null`).
+
+The watchlist doesn't change what counts as a deal (§3 still gates inclusion).
+A watchlist hit on a marginal price is still excluded — we only badge real
+deals.
+
 ## 6. Picking "best store this week"
 
 After extracting all stores, choose one **best store of the week** and write a
@@ -94,6 +116,15 @@ After extracting all stores, choose one **best store of the week** and write a
 
 Also surface a short **"top steals"** list (≈5–8) — the single best individual
 deals across all stores this week, each tagged with its store.
+
+**Watchlist bubble-up.** Any deal that matched `my_picks` (i.e. has
+`watchlist_hit: true` AND `watchlist_source: "mine"` in its store block) must
+also appear in `top_steals` regardless of whether it would have ranked on raw
+value alone — the site owner wants those called out front and center. Carry
+`watchlist_hit: true` and `watchlist_source: "mine"` onto the TopSteal entry so
+the page can label it "Editor's pick." It's fine if this pushes the list to
+9–10 entries that week; do not, however, force `ai_picks` matches up — those
+should only land in `top_steals` if they're genuinely among the best deals.
 
 ## 7. Output format (strict JSON)
 
@@ -110,7 +141,10 @@ Return **only** valid JSON, no prose around it, matching:
   "top_steals": [
     { "store": "WinCo Foods", "item": "Boneless chicken breast",
       "sale_price": 1.77, "unit": "$/lb", "unit_price": 1.77,
-      "caveats": [] }
+      "caveats": [], "watchlist_hit": false, "watchlist_source": null },
+    { "store": "Good Food Store", "item": "Annie's Mac and Cheese, 6 oz",
+      "sale_price": 0.99, "unit": "$/box", "unit_price": 0.99,
+      "caveats": [], "watchlist_hit": true, "watchlist_source": "mine" }
   ],
   "stores": [
     {
@@ -129,7 +163,9 @@ Return **only** valid JSON, no prose around it, matching:
           "requires_loyalty": true,
           "caveats": ["limit 4", "with Club Card"],
           "confidence": "high",
-          "note": null
+          "note": null,
+          "watchlist_hit": true,
+          "watchlist_source": "mine"
         }
       ]
     }
@@ -141,6 +177,8 @@ Field rules:
 - `category` ∈ `produce`, `meat_seafood`, `dairy_eggs`, `bakery`, `pantry`,
   `frozen`, `beverages`, `snacks`, `household`, `other`.
 - `confidence` ∈ `high` | `medium` | `low` — `low` means you struggled to read it.
+- `watchlist_source` ∈ `"mine"` | `"ai"` | `null`. Must be `null` when
+  `watchlist_hit` is `false`, and non-null when `watchlist_hit` is `true`.
 - Prices are plain numbers (USD), or `null` if unreadable. Never a string.
 - Omit a store entirely if no flyer was provided for it.
 

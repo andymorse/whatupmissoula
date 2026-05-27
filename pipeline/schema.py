@@ -29,6 +29,8 @@ class Deal:
     caveats: list[str] = field(default_factory=list)
     confidence: str = "high"
     note: Optional[str] = None
+    watchlist_hit: bool = False
+    watchlist_source: Optional[str] = None   # "mine" | "ai" when watchlist_hit
 
     @property
     def percent_off(self) -> Optional[int]:
@@ -60,6 +62,8 @@ class TopSteal:
     unit: Optional[str] = None
     unit_price: Optional[float] = None
     caveats: list[str] = field(default_factory=list)
+    watchlist_hit: bool = False
+    watchlist_source: Optional[str] = None   # "mine" | "ai" when watchlist_hit
 
 
 @dataclass

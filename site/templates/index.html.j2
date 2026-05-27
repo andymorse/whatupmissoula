@@ -24,13 +24,20 @@
 {% endif %}
 
 {% if report.top_steals %}
+{% set has_editor_pick = report.top_steals|selectattr('watchlist_hit')|selectattr('watchlist_source','equalto','mine')|list|length > 0 %}
 <section class="section">
   <div class="container">
     <span class="label">Don't miss</span>
     <h2>Top steals across town</h2>
+    {% if has_editor_pick %}
+    <p class="disclaimer">An <strong>★ Editor's pick</strong> is a personal favorite from the site owner — we surface these when they're on sale, separate from the AI's value ranking.</p>
+    {% endif %}
     <div class="steals" style="margin-top:24px">
       {% for s in report.top_steals %}
-      <div class="steal">
+      <div class="steal{% if s.watchlist_hit and s.watchlist_source == 'mine' %} steal-pick{% endif %}">
+        {% if s.watchlist_hit and s.watchlist_source == 'mine' %}
+        <div class="editor-pick" title="Hand-picked by the site owner — not just an AI-ranked steal">★ Editor's pick</div>
+        {% endif %}
         <div class="store">{{ s.store }}</div>
         <div class="item">{{ s.item }}</div>
         {% if s.sale_price is not none %}<div class="price">${{ '%.2f'|format(s.sale_price) }}</div>{% endif %}
@@ -60,8 +67,17 @@
           </thead>
           <tbody>
             {% for d in store.deals %}
-            <tr>
-              <td>{{ d.item }}</td>
+            <tr{% if d.watchlist_hit %} class="watch"{% endif %}>
+              <td>
+                {{ d.item }}
+                {% if d.watchlist_hit %}
+                  {% if d.watchlist_source == 'mine' %}
+                    <span class="watch-badge watch-mine" title="On your watchlist">★ on your list</span>
+                  {% else %}
+                    <span class="watch-badge watch-ai" title="Default staple worth watching">★ pick</span>
+                  {% endif %}
+                {% endif %}
+              </td>
               <td class="sale">{% if d.sale_price is not none %}${{ '%.2f'|format(d.sale_price) }}{% else %}—{% endif %}</td>
               <td>{% if d.regular_price is not none %}<span class="reg">${{ '%.2f'|format(d.regular_price) }}</span>{% endif %}
                   {% if d.percent_off %}<span class="pct">{{ d.percent_off }}% off</span>{% endif %}</td>
