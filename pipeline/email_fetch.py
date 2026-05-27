@@ -45,6 +45,12 @@ def fetch_flyer_emails(cfg: dict) -> list[FlyerEmail]:
     since = (datetime.now() - timedelta(days=ecfg.get("lookback_days", 8))).strftime("%d-%b-%Y")
 
     found: list[FlyerEmail] = []
+    # Dedup key includes the To: address because some senders (Yoke's via
+    # Mailchimp) use the same sender+subject for every location and encode the
+    # store choice in per-recipient redirects. Two signups (one alias per
+    # location) → two distinct emails to different To: addresses → must keep
+    # both. Same campaign delivered twice to the same To still gets deduped.
+    seen: set[tuple[str, str, str]] = set()
     M = imaplib.IMAP4_SSL(host, int(env("IMAP_PORT", "993")))
     try:
         M.login(user, pw)
@@ -60,6 +66,11 @@ def fetch_flyer_emails(cfg: dict) -> list[FlyerEmail]:
             subject = _decode(msg.get("Subject", ""))
             if hints and not any(h in subject.lower() for h in hints):
                 continue                          # known sender, but not a flyer (e.g. welcome)
+            to_addr = email.utils.parseaddr(msg.get("To", ""))[1].lower()
+            key = (sender.lower(), subject.strip().lower(), to_addr)
+            if key in seen:
+                continue                          # same campaign delivered twice to same recipient
+            seen.add(key)
             html = _html_body(msg)
             url = extract_flyer_link(html, ecfg) if html else None
             found.append(FlyerEmail(store, sender, subject, msg.get("Date", ""), url))

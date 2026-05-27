@@ -89,9 +89,31 @@ Three input paths feed the same analyze→render chain:
 - **manual drop** (`--images`) — for stores we can't render (bot-walled) or one-offs.
 - **email** (`email_fetch.py`) — the default weekly path: find flyer emails (known
   store sender + flyer-ish subject), pull the "view the ad" link from the HTML, and
-  render it via `web_flyer`. Wired and validated against the live mailbox (welcome
-  emails are correctly skipped); sender/subject/link patterns in `config.yaml` get a
-  final tune when the first real weekly-ad email lands. Just run `python pipeline/run.py`.
+  render it via `web_flyer`. Validated 2026-05-27 against the live mailbox — real
+  weekly ads from GFS, Yoke's (Broadway + Reserve), and Super 1 all flow cleanly.
+  Just run `python pipeline/run.py`.
+
+## Stores in scope
+
+Configured in `pipeline/config.yaml` under `stores:`. The store name there is
+only a hint — the AI confirms the real store from the ad image itself.
+
+| Store | Email path | Notes |
+|---|---|---|
+| Good Food Store | Constant Contact → `goodfoodstore.com/sales-flyer/` | WordPress page exposes 3 full-res JPG pages + a PDF; the email anchor text is just "Click here", so `click here` is in `link_keywords`. |
+| Yoke's Fresh Market | Mailchimp → `yokesfreshmarkets.com/weekly-ad/<location>` | **Two Missoula locations: Broadway + Reserve.** Yoke's signup form only allows one email per signup, so the mailbox uses two aliases (`whatupmissoula@`, `whatup2@`) — one subscribed to each location. Both emails arrive with identical sender, subject, and timestamp; Mailchimp encodes the store choice in the per-recipient `e=` token, which redirects to the correct `/broadway` or `/reserve` page. `email_fetch.py` dedups on `(sender, subject, To:)` so both location ads come through. |
+| Super 1 Foods | Constant Contact → flyer redirect | Stevensville + Hamilton; AI reads location from the ad. Note: Super 1 sometimes mixes formats — most weeks ship a normal "view the ad" link, but occasional one-offs (e.g. holiday promos) are inline-image emails with no link. The inline-image fallback ("Path B") is deferred until a second sample arrives — see `~/.claude/projects/-root-whatsupmissoula/memory/project_email_inline_images.md`. |
+| Rosauers | Mailchimp | Currently sending lifestyle/recipe emails ("425 Recipes with Brittany", "Summer Of Fruits") rather than a weekly ad — those get correctly dropped by the `subject_hints` whitelist. Investigation pending: whether Rosauers has a separate weekly-ad list. |
+| Albertsons | n/a | Welcome email arrived 2026-05-21; no real weekly ad yet. |
+
+**Multi-location rendering rule:** for stores with multiple Missoula locations
+in scope (today: Yoke's; later: Super 1), the rendered output on the public
+site must label each deal with its specific location (e.g. "Yoke's — Broadway"
+vs "Yoke's — Reserve"). Missoula is small enough that locals will want to know
+which store the price applies to. If a deal is identical at both locations,
+combine them ("Yoke's — Broadway & Reserve") rather than dropping the label.
+The location can be sourced reliably from the URL slug as a fallback to AI
+extraction.
 
 **Extra dependency:** the `chromium` binary must be on PATH (`apt install chromium`).
 

@@ -24,20 +24,28 @@ email:
   # The flyer email links to a web-hosted ad (tracking redirect → Flipp/SPA).
   # We pick the anchor whose text/url best matches these, skipping the excludes,
   # then render that URL with web_flyer (headless browser follows the redirect).
+  # "click here" is included because Good Food Store's flyer email uses bare
+  # "Click here" as the only anchor text — the subject_hints gate keeps this
+  # narrow enough that generic "Click here" links don't cause false positives.
   link_keywords:
     ["weekly ad", "view ad", "view the ad", "see the ad", "shop the ad",
      "browse the ad", "this week", "weekly specials", "circular", "flyer",
-     "deals", "savings", "specials"]
+     "deals", "savings", "specials", "click here"]
+  # NOTE: exclusion substrings are checked against both URL and anchor text, so
+  # they must be specific enough to not match infrastructure domains. E.g. bare
+  # "manage" would false-positive on Mailchimp's `list-manage.com` and kill
+  # legit "view weekly ad" anchors (Yoke's, caught 2026-05-27).
   link_exclude:
-    ["unsubscribe", "preferences", "privacy", "profile", "manage", "opt out",
-     "update your", "facebook", "instagram", "twitter", "x.com", "youtube",
-     "tiktok", "pinterest", "mailto:", "app store", "google play", "apps.apple"]
+    ["unsubscribe", "preferences", "privacy", "profile", "manage preferences",
+     "manage subscription", "opt out", "update your", "facebook", "instagram",
+     "twitter", "x.com", "youtube", "tiktok", "pinterest", "mailto:",
+     "app store", "google play", "apps.apple"]
 
 # Stores in scope (mirror ai/guidance.md §2). `senders` maps a store to the
 # addresses its flyer emails come from (supports "*.domain" wildcards). The
 # store name here is just a hint — the AI confirms the real store from the ad.
-# Senders below are GUESSES from welcome emails (2026-05-21) — CONFIRM with a
-# real weekly-ad email. WinCo is excluded (no weekly ad).
+# Senders below were CONFIRMED against real weekly-ad emails on 2026-05-27.
+# WinCo is excluded (no weekly ad).
 stores:
   - name: "Rosauers"
     senders: ["info@rosauers.com", "*.rosauers.com"]
@@ -46,4 +54,12 @@ stores:
   - name: "Albertsons"
     senders: ["*.albertsons.com"]
   - name: "Super1"          # Stevensville + Hamilton; AI reads location from ad
-    senders: ["no-reply@yokesfreshmarkets.com", "*.yokesfreshmarkets.com"]
+    # URM (Super1's parent) sends marketing via Constant Contact's ccsend.com.
+    # Exact address — *.ccsend.com would match any Constant Contact customer.
+    senders: ["super1-advertising@urmstores.ccsend.com"]
+  - name: "Yokes"           # two Missoula locations (Broadway + Reserve);
+    # AI reads location from the ad header. See README §Stores: Yoke's only
+    # allows one signup per email, so the mailbox uses two aliases (one per
+    # location) and `email_fetch.py` dedups on (sender, subject, To:) — the
+    # location is encoded in Mailchimp's per-recipient redirect, not the URL.
+    senders: ["no-reply@yokesfreshmarkets.com"]
