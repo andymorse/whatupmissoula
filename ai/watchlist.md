@@ -35,7 +35,7 @@ Edit either list freely — changes here change what the page highlights next ru
 - Tillamook cheese — blocks only (loaf / brick / chunk; any variety: medium
   cheddar, sharp cheddar, pepper jack, etc.). Do NOT flag shredded, sliced,
   or string cheese — those are different products even though the brand matches.
-- Epic Meat Strips - All kinds or varities but would like the price to be close to 1.50 per strip.
+- Epic Meat Strips - All kinds or varieties but would like the price to be close to 1.50 per strip.
 
 
 ## ai_picks
