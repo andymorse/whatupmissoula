@@ -1,0 +1,32 @@
+# Caddy serves the rendered static site at WUM_DOMAIN with auto-TLS.
+# `caddy_data` volume holds the ACME account + certs across restarts.
+#
+# CSP allows: same-origin assets + Google Fonts (the template loads
+# Montserrat). Tighten if the template drops external fonts.
+
+{
+	email {$WUM_TLS_EMAIL}
+	# Bump if you want fewer ACME staging surprises during cutover:
+	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+}
+
+{$WUM_DOMAIN} {
+	root * /srv
+	encode gzip zstd
+	file_server
+
+	header {
+		-Server
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "interest-cohort=()"
+		Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+	}
+
+	# 404s shouldn't echo whatever the client asked for back at them.
+	handle_errors {
+		respond "Not found." 404
+	}
+}

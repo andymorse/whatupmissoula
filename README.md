@@ -127,9 +127,48 @@ cp pipeline/config.example.yaml pipeline/config.yaml
 python pipeline/run.py --dry-run           # once implemented
 ```
 
+## Deploying to a VPS
+
+The full step-by-step runbook is in [`docs/deploy.md`](docs/deploy.md). Before
+you start that, you (the human) need these things in hand — none are scripted
+because they live outside the repo:
+
+**Domain & DNS**
+- [ ] Domain registered (default: `whatsupmissoula.com`)
+- [ ] Email address you'll register with Let's Encrypt — ACME uses it for cert
+      expiry notices and rate-limit recovery contact
+- [ ] Access to the domain's DNS panel so you can point A records at the VPS
+
+**VPS**
+- [ ] Hetzner Cloud account (or another provider — runbook assumes Hetzner US)
+- [ ] An SSH key pair on your laptop; public key ready to paste during VPS
+      creation
+- [ ] Decided which datacenter (Ashburn vs. Hillsboro for Hetzner US)
+
+**Secrets to populate in `.env` on the VPS**
+- [ ] `IMAP_USER` + `IMAP_APP_PASSWORD` — Google Workspace app password for the
+      mailbox the flyer emails land in
+- [ ] `ANTHROPIC_API_KEY` — for the Claude vision provider
+- [ ] `WUM_DOMAIN` — public hostname Caddy will serve
+- [ ] `WUM_TLS_EMAIL` — the Let's Encrypt contact email above
+
+**Pre-flight order of operations on the VPS** (details in `docs/deploy.md`):
+1. Spin up the VPS and note its public IPv4.
+2. Point `@` and `www` A records at that IP and wait for propagation
+   (`dig <domain> +short` returns the IP). Caddy can't get a cert until this
+   resolves.
+3. SSH in, run the hardening + Docker install steps.
+4. Clone the repo into `/opt/wum`, fill `.env` and `pipeline/config.yaml`.
+5. `docker compose build pipeline && docker compose up -d caddy`.
+6. First weekly run: `docker compose run --rm pipeline python run.py`.
+7. Promote when the draft looks right:
+   `docker compose run --rm pipeline python run.py --publish`.
+8. Add the Monday-morning cron entry (see runbook §7).
+
 ## Security notes
 
 - Secrets live only in `.env` (gitignored), never in the repo or site output.
 - The mailbox is accessed **read-only** via an app password.
-- The internet-facing box serves static files only; the pipeline runs elsewhere
-  or as an isolated non-web user. See `docs/deploy.md`.
+- The internet-facing surface is Caddy serving static files only. The pipeline
+  runs as a one-shot container, never reachable from the public internet.
+  See `docs/deploy.md`.

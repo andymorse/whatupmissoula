@@ -1,0 +1,48 @@
+# Single-host deployment: Caddy (long-running, TLS + static serve) + the
+# pipeline (one-shot, invoked weekly by host cron and on demand for publish).
+#
+# Bring up the public site:   docker compose up -d caddy
+# Build a weekly draft:       docker compose run --rm pipeline python run.py
+# Promote draft to live:      docker compose run --rm pipeline python run.py --publish
+#
+# The pipeline service has a "one-shot" profile so `docker compose up` only
+# starts Caddy. You explicitly invoke pipeline runs.
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: wum-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - wum_site:/srv:ro                # rendered site, written by pipeline
+      - caddy_data:/data                # TLS certs / ACME account (persistent)
+      - caddy_config:/config
+    environment:
+      - WUM_DOMAIN
+      - WUM_TLS_EMAIL
+
+  pipeline:
+    build:
+      context: .
+      dockerfile: pipeline/Dockerfile
+      args:
+        WUM_UID: ${WUM_UID:-1000}
+        WUM_GID: ${WUM_GID:-1000}
+    image: wum-pipeline:latest
+    container_name: wum-pipeline
+    profiles: ["one-shot"]              # don't start with `compose up`
+    volumes:
+      - ./.env:/app/.env:ro             # mailbox + AI API key (host file, 600)
+      - ./pipeline/config.yaml:/app/pipeline/config.yaml:ro
+      - wum_site:/app/site/output       # rendered output (also served by caddy)
+      - wum_drafts:/app/pipeline/drafts # drafts persist between build & publish
+
+volumes:
+  wum_site:
+  wum_drafts:
+  caddy_data:
+  caddy_config:

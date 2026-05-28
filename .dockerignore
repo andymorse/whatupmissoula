@@ -1,0 +1,27 @@
+# Keep secrets and state out of the image.
+.git
+.gitignore
+.venv
+__pycache__
+*.pyc
+*.pyo
+.env
+.env.*
+!.env.example
+
+# Local config (real one is mounted at runtime; the example is fine to bake).
+pipeline/config.yaml
+
+# Generated state — these come in via named volumes at runtime.
+pipeline/drafts
+pipeline/.cache
+site/output
+
+# Editor / OS noise
+.DS_Store
+.idea
+.vscode
+
+# Docs and runbooks aren't needed inside the container.
+docs/
+README.md
