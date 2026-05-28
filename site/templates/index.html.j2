@@ -55,12 +55,19 @@
     <h2>Every deal, by store</h2>
     <div style="margin-top:24px">
       {% for store in report.stores %}
-      <div class="store-block">
-        <h3>{{ store.name }}</h3>
+      <div class="store-block{% if store.kind == 'bulk_wholesale' %} store-bulk{% endif %}">
+        <h3>
+          {{ store.name }}
+          {% if store.kind == 'bulk_wholesale' %}<span class="store-kind bulk">Bulk / wholesale</span>{% endif %}
+        </h3>
         <div class="dates">
-          {% if store.valid_from %}{{ store.valid_from }} – {{ store.valid_through }}{% endif %}
+          {% if store.valid_from and store.valid_through %}{{ store.valid_from }} – {{ store.valid_through }}
+          {% elif store.valid_through %}Valid through {{ store.valid_through }}{% endif %}
           {% if not store.in_scope %}<span class="caveat">not a tracked store</span>{% endif %}
         </div>
+        {% if store.kind == 'bulk_wholesale' %}
+        <p class="store-note">Restaurant-supply pack sizes — prices are per case, not per unit. Best for big families, freezer-stockers, and side-business cooks.</p>
+        {% endif %}
         <table class="deals">
           <thead>
             <tr><th>Item</th><th>Sale</th><th>Reg</th><th class="unit-col">Unit price</th><th>Notes</th></tr>

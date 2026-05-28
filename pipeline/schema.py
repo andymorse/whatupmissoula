@@ -46,6 +46,9 @@ class StoreWeek:
     valid_from: Optional[str] = None        # ISO date
     valid_through: Optional[str] = None
     deals: list[Deal] = field(default_factory=list)
+    # Optional store flavor — e.g. "bulk_wholesale" for CHEF'STORE so the site
+    # can badge case-sized pricing distinctly from household grocery deals.
+    kind: Optional[str] = None
 
 
 @dataclass
@@ -92,6 +95,7 @@ class WeeklyReport:
                     valid_from=s.get("valid_from"),
                     valid_through=s.get("valid_through"),
                     deals=[Deal(**deal) for deal in s.get("deals", [])],
+                    kind=s.get("kind"),
                 )
                 for s in d.get("stores", [])
             ],

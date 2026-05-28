@@ -103,6 +103,10 @@ h1, h2, h3, .label, nav, .btn { font-family: 'Montserrat', sans-serif; }
 .store-block { background: var(--white); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); padding: 28px 32px; margin-bottom: 22px; }
 .store-block h3 { font-size: 24px; font-weight: 700; color: var(--navy-deep); }
 .store-block .dates { font-size: 13px; color: var(--gray-400); margin-bottom: 16px; }
+.store-block .store-note { font-size: 13px; color: var(--gray-400); margin: -8px 0 16px; font-style: italic; }
+.store-kind { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+  text-transform: uppercase; border-radius: 100px; padding: 3px 10px; margin-left: 10px; vertical-align: 4px; }
+.store-kind.bulk { background: rgba(28,46,89,0.08); color: var(--navy-deep); border: 1px solid rgba(28,46,89,0.18); }
 
 table.deals { width: 100%; border-collapse: collapse; }
 table.deals th {

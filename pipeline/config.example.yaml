@@ -64,3 +64,11 @@ stores:
     # location) and `email_fetch.py` dedups on (sender, subject, To:) — the
     # location is encoded in Mailchimp's per-recipient redirect, not the URL.
     senders: ["no-reply@yokesfreshmarkets.com"]
+  - name: "CHEF'STORE"      # Missoula (US Foods bulk/wholesale) — store #505.
+    # Their weekly email links to chefstore.com/specials/, not a flyer image.
+    # We bypass vision and pull deals from the biweekly hotsheet's embedded
+    # `productData` JSON — see pipeline/chefstore_fetch.py. The From: address
+    # is on email.chefstore.com; the click-tracking link is click.email.*.
+    senders: ["chefstore@email.chefstore.com"]
+    kind: "bulk_wholesale"   # render.py / template badges this distinctly
+    store_id: 505            # passed to chefstore_fetch.fetch_chefstore_deals

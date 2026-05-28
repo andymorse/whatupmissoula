@@ -74,6 +74,9 @@ def main() -> int:
         report = analyze(flyers, week_of, cfg)
     else:
         # Default weekly path: fetch flyer emails → render each linked ad → analyze.
+        # CHEF'STORE is special — they don't email a flyer image, they email a
+        # link to a SPA whose biweekly specials page has structured JSON. For
+        # those we skip vision and parse the JSON directly (chefstore_fetch).
         from email_fetch import fetch_flyer_emails
         from web_flyer import render_flyer
         from analyze import analyze
@@ -83,8 +86,12 @@ def main() -> int:
             print("No flyer emails found this week — nothing to do.", file=sys.stderr)
             return 1
         print(f"Found {len(emails)} flyer email(s):")
+
+        chefstore_emails = [e for e in emails if e.store == "CHEF'STORE"]
+        flyer_emails = [e for e in emails if e.store != "CHEF'STORE"]
+
         flyers = []
-        for fe in emails:
+        for fe in flyer_emails:
             if not fe.flyer_url:
                 print(f"  ! {fe.store}: no flyer link found in email — skipping", file=sys.stderr)
                 continue
@@ -93,11 +100,29 @@ def main() -> int:
                 flyers += render_flyer(fe.flyer_url, fe.store)
             except Exception as e:                 # one blocked store shouldn't sink the run
                 print(f"  ! {fe.store}: render failed ({e}) — skipping", file=sys.stderr)
-        if not flyers:
+        if flyers:
+            print(f"  → {len(flyers)} image tile(s); analyzing with AI…")
+            report = analyze(flyers, week_of, cfg)
+        elif chefstore_emails:
+            # Only ChefStore arrived this week — start with an empty report
+            # and let the structured fetch below populate it.
+            report = WeeklyReport(week_of=week_of)
+        else:
             print("Could not render any flyer this week — nothing to do.", file=sys.stderr)
             return 1
-        print(f"  → {len(flyers)} image tile(s); analyzing with AI…")
-        report = analyze(flyers, week_of, cfg)
+
+        # Append CHEF'STORE structured deals (bulk/wholesale, excluded from
+        # top_steals by design — household scale vs. case packs aren't a fair
+        # comparison).
+        if chefstore_emails:
+            from chefstore_fetch import fetch_chefstore_deals
+            cs_cfg = next((s for s in cfg.get("stores", []) if s.get("name") == "CHEF'STORE"), {})
+            store_id = cs_cfg.get("store_id", 505)
+            print(f"  • CHEF'STORE: fetching biweekly specials (store #{store_id})…")
+            try:
+                report.stores.append(fetch_chefstore_deals(store_id=store_id))
+            except Exception as e:
+                print(f"  ! CHEF'STORE fetch failed ({e}) — skipping", file=sys.stderr)
 
     path = render(report, draft_dir)
     print(f"Draft rendered → {path}")
