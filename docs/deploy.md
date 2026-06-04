@@ -79,8 +79,8 @@ Caddy won't be able to provision a cert until DNS resolves.
 ## 4. Clone + configure
 
 ```bash
-sudo mkdir -p /opt/wum && sudo chown wum:wum /opt/wum
-cd /opt/wum
+sudo mkdir -p /srv/wum && sudo chown wum:wum /srv/wum
+cd /srv/wum
 git clone https://git.morse406.com/FractionalIT/WhatsUpMissoula.git .
 
 # Secrets (host file, mode 600). docker-compose mounts this read-only into
@@ -97,7 +97,7 @@ nano pipeline/config.yaml   # confirm stores list is current
 ## 5. Build + bring up Caddy
 
 ```bash
-cd /opt/wum
+cd /srv/wum
 
 # If host wum isn't UID 1000, set WUM_UID/WUM_GID in .env before building.
 # The pipeline image bakes the user IDs in so the mounted .env is readable.
@@ -134,7 +134,7 @@ Edit `wum`'s crontab (`crontab -e`) and add:
 
 ```cron
 # Monday 06:00 — build the weekly draft. Publishing stays manual (review gate).
-0 6 * * 1  cd /opt/wum && /usr/bin/docker compose run --rm pipeline python run.py >> /var/log/wum.log 2>&1
+0 6 * * 1  cd /srv/wum && /usr/bin/docker compose run --rm pipeline python run.py >> /var/log/wum.log 2>&1
 ```
 
 Then `sudo touch /var/log/wum.log && sudo chown wum:wum /var/log/wum.log`.
@@ -142,14 +142,14 @@ Then `sudo touch /var/log/wum.log && sudo chown wum:wum /var/log/wum.log`.
 Once you trust the output a few weeks running, fold publish into the cron:
 
 ```cron
-0 6 * * 1  cd /opt/wum && /usr/bin/docker compose run --rm pipeline sh -c "python run.py && python run.py --publish" >> /var/log/wum.log 2>&1
+0 6 * * 1  cd /srv/wum && /usr/bin/docker compose run --rm pipeline sh -c "python run.py && python run.py --publish" >> /var/log/wum.log 2>&1
 ```
 
 ## 8. Code updates
 
 ```bash
 ssh wum@<ip>
-cd /opt/wum
+cd /srv/wum
 git pull
 docker compose build pipeline    # only if pipeline/ changed
 docker compose restart caddy     # only if Caddyfile changed
