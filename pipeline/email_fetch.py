@@ -17,7 +17,7 @@ import email
 import imaplib
 import re
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from email.header import decode_header
 from email.message import Message
 
@@ -42,15 +42,26 @@ def fetch_flyer_emails(cfg: dict) -> list[FlyerEmail]:
     ecfg = cfg.get("email", {})
     mapping = _store_senders(cfg)
     hints = [h.lower() for h in ecfg.get("subject_hints", [])]
-    since = (datetime.now() - timedelta(days=ecfg.get("lookback_days", 8))).strftime("%d-%b-%Y")
 
-    found: list[FlyerEmail] = []
-    # Dedup key includes the To: address because some senders (Yoke's via
-    # Mailchimp) use the same sender+subject for every location and encode the
-    # store choice in per-recipient redirects. Two signups (one alias per
-    # location) → two distinct emails to different To: addresses → must keep
-    # both. Same campaign delivered twice to the same To still gets deduped.
-    seen: set[tuple[str, str, str]] = set()
+    # Per-store "ad period". Most stores email a fresh ad every week, so the
+    # default lookback_days window is right. A few (Good Food Store, CHEF'STORE)
+    # email once for a multi-week ad — without this their email ages out of the
+    # window and the ad silently vanishes from the site in week 2. ad_period_days
+    # on a store keeps its most recent email "live" for that many days; we widen
+    # the IMAP search to cover the longest period, then filter per store below.
+    default_days = int(ecfg.get("lookback_days", 8))
+    period = {s["name"]: int(s.get("ad_period_days", default_days))
+              for s in cfg.get("stores", [])}
+    max_days = max([default_days, *period.values()])
+    since = (datetime.now() - timedelta(days=max_days)).strftime("%d-%b-%Y")
+
+    # Keep only the most recent email per (store, To:). Re-rendering the latest
+    # flyer link each run shows the still-current multi-week ad, and a freshly
+    # arrived ad cleanly supersedes the prior one (no stale double-render). The
+    # To: address stays in the key because some senders (Yoke's via Mailchimp)
+    # reuse one sender+subject for every location and encode the store in a
+    # per-recipient redirect — two aliases (one per location) must keep both.
+    best: dict[tuple[str, str], tuple[datetime, FlyerEmail]] = {}
     M = imaplib.IMAP4_SSL(host, int(env("IMAP_PORT", "993")))
     try:
         M.login(user, pw)
@@ -66,20 +77,22 @@ def fetch_flyer_emails(cfg: dict) -> list[FlyerEmail]:
             subject = _decode(msg.get("Subject", ""))
             if hints and not any(h in subject.lower() for h in hints):
                 continue                          # known sender, but not a flyer (e.g. welcome)
+            sent = _email_datetime(msg.get("Date", ""))
+            if _age_days(sent) > period.get(store, default_days):
+                continue                          # older than this store's ad cycle
             to_addr = email.utils.parseaddr(msg.get("To", ""))[1].lower()
-            key = (sender.lower(), subject.strip().lower(), to_addr)
-            if key in seen:
-                continue                          # same campaign delivered twice to same recipient
-            seen.add(key)
+            key = (store.lower(), to_addr)
+            if key in best and best[key][0] >= sent:
+                continue                          # already have an equal-or-newer one
             html = _html_body(msg)
             url = extract_flyer_link(html, ecfg) if html else None
-            found.append(FlyerEmail(store, sender, subject, msg.get("Date", ""), url))
+            best[key] = (sent, FlyerEmail(store, sender, subject, msg.get("Date", ""), url))
     finally:
         try:
             M.logout()
         except Exception:
             pass
-    return found
+    return [fe for _, fe in best.values()]
 
 
 def extract_flyer_link(html: str, ecfg: dict) -> str | None:
@@ -104,6 +117,25 @@ def extract_flyer_link(html: str, ecfg: dict) -> str | None:
 
 
 # --- helpers ---------------------------------------------------------------
+
+def _email_datetime(raw: str) -> datetime:
+    """Parse a Date: header into an aware (UTC) datetime. Missing/unparseable
+    headers fall back to 'now' so the email counts as current rather than being
+    silently dropped by the age filter."""
+    try:
+        dt = email.utils.parsedate_to_datetime(raw)
+    except (TypeError, ValueError):
+        dt = None
+    if dt is None:
+        return datetime.now(timezone.utc)
+    if dt.tzinfo is None:                          # some senders omit the offset
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt
+
+
+def _age_days(sent: datetime) -> float:
+    return (datetime.now(timezone.utc) - sent).total_seconds() / 86400.0
+
 
 def _store_senders(cfg: dict) -> list[tuple[str, str]]:
     out: list[tuple[str, str]] = []

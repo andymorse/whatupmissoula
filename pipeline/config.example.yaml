@@ -15,6 +15,10 @@ ai:
   image_max_px: 1600           # downscale long edge before sending
 
 email:
+  # Default window for fetching flyer emails. Weekly stores email a fresh ad
+  # each week, so 8 days is right. A store running a multi-week ad (it emails
+  # once, the ad stays valid for ~2 weeks) needs `ad_period_days` on its entry
+  # below, or its email ages out of this window and the ad disappears in week 2.
   lookback_days: 8
   # A flyer email must come from a known store sender (stores[].senders below)
   # AND its subject must match one of these hints — this keeps welcome/receipt/
@@ -52,6 +56,7 @@ stores:
     senders: ["info@rosauers.com", "*.rosauers.com"]
   - name: "Good Food Store"
     senders: ["communications@email.goodfoodstore.com", "*.goodfoodstore.com"]
+    ad_period_days: 14   # 2-week ad emailed once; keep it live across both weeks
   - name: "Albertsons"
     senders: ["*.albertsons.com"]
   - name: "Super1"          # Stevensville + Hamilton; AI reads location from ad
@@ -72,3 +77,4 @@ stores:
     senders: ["chefstore@email.chefstore.com"]
     kind: "bulk_wholesale"   # render.py / template badges this distinctly
     store_id: 505            # passed to chefstore_fetch.fetch_chefstore_deals
+    ad_period_days: 14       # biweekly hotsheet; keep the email live for 2 weeks
