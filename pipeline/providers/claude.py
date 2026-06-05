@@ -63,12 +63,18 @@ class ClaudeProvider(AIProvider):
                 "source": {"type": "base64", "media_type": fl.media_type, "data": fl.data_b64},
             })
 
-        resp = self.client.messages.create(
+        # Stream: a high max_tokens can push the request past the SDK's 10-min
+        # non-streaming ceiling, which raises before the call even goes out.
+        # Streaming accumulates the chunks; get_final_message() returns the same
+        # complete Message (content + stop_reason), and prompt caching still
+        # applies to the system block.
+        with self.client.messages.stream(
             model=self.model,
             max_tokens=self.max_tokens,
             system=system,
             messages=[{"role": "user", "content": content}],
-        )
+        ) as stream:
+            resp = stream.get_final_message()
 
         # A truncated response is invalid JSON; say so plainly instead of
         # surfacing a confusing "Expecting ',' delimiter" parse error.
