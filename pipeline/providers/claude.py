@@ -31,6 +31,11 @@ class ClaudeProvider(AIProvider):
             raise RuntimeError("ANTHROPIC_API_KEY is not set")
         self.client = Anthropic(api_key=api_key)
         self.model = model or os.environ.get("ANTHROPIC_MODEL", "claude-opus-4-7")
+        # Output cap. The whole report is one JSON object, so too low a cap
+        # truncates it mid-object and parsing fails. Many flyers (esp. Rosauers'
+        # multi-page PDF) push the response large; default high and let .env
+        # override. It's only a ceiling — you're billed for tokens generated.
+        self.max_tokens = int(os.environ.get("ANTHROPIC_MAX_TOKENS", "32000"))
 
     def analyze(self, guidance: str, flyers: list[FlyerImage], week_of: str) -> WeeklyReport:
         # System: short preamble + the (cached) guidance doc.
@@ -60,10 +65,19 @@ class ClaudeProvider(AIProvider):
 
         resp = self.client.messages.create(
             model=self.model,
-            max_tokens=8000,
+            max_tokens=self.max_tokens,
             system=system,
             messages=[{"role": "user", "content": content}],
         )
+
+        # A truncated response is invalid JSON; say so plainly instead of
+        # surfacing a confusing "Expecting ',' delimiter" parse error.
+        if resp.stop_reason == "max_tokens":
+            raise ValueError(
+                f"Claude hit the {self.max_tokens}-token output cap before "
+                "finishing the JSON (response truncated). Raise "
+                "ANTHROPIC_MAX_TOKENS in .env, or send fewer flyers per run."
+            )
 
         raw = "".join(b.text for b in resp.content if b.type == "text").strip()
         data = _parse_json(raw)
