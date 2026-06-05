@@ -77,9 +77,9 @@ def main() -> int:
         # Two stores are special-cased and don't go through the emailed-flyer loop:
         #   • CHEF'STORE — emails a link to a SPA whose biweekly specials page has
         #     structured JSON; we parse it directly (chefstore_fetch), email-gated.
-        #   • Rosauers (kind: web_pdf) — doesn't email an ad at all; we scrape its
-        #     weekly-ad page for the PDF and run it through the vision path every
-        #     run, regardless of email (rosauers_fetch).
+        #   • web_pdf stores (Rosauers, Good Food Store) — the ad is a PDF on a
+        #     public page; we scrape + render it through the vision path every
+        #     run, regardless of email (web_pdf_fetch).
         from email_fetch import fetch_flyer_emails
         from web_flyer import render_flyer
         from analyze import analyze
@@ -104,13 +104,14 @@ def main() -> int:
             except Exception as e:                 # one blocked store shouldn't sink the run
                 print(f"  ! {fe.store}: render failed ({e}) — skipping", file=sys.stderr)
 
-        # Web-PDF stores (Rosauers): fetched every run, independent of email.
+        # Web-PDF stores (Rosauers, Good Food Store): fetched every run,
+        # independent of email.
         if web_pdf_stores:
-            from rosauers_fetch import fetch_rosauers_flyers
+            from web_pdf_fetch import fetch_web_pdf_flyers
             for s in web_pdf_stores:
                 print(f"  • {s['name']}: fetching web-PDF weekly ad…")
                 try:
-                    flyers += fetch_rosauers_flyers(s, cfg)
+                    flyers += fetch_web_pdf_flyers(s, cfg)
                 except Exception as e:             # a down site shouldn't sink the run
                     print(f"  ! {s['name']}: web-PDF fetch failed ({e}) — skipping", file=sys.stderr)
 

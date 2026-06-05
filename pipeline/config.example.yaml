@@ -57,14 +57,19 @@ stores:
     # Rosauers' weekly email has a "Weekly Ad" button, but it only links to the
     # weekly-ad page (no PDF attached). We ignore the email and scrape that page
     # directly every run: the Missoula ad lives there as a PDF behind a
-    # pdf-poster-pro PDF.js viewer — see pipeline/rosauers_fetch.py. The senders
+    # pdf-poster-pro PDF.js viewer — see pipeline/web_pdf_fetch.py. The senders
     # above stay only so their mail still classifies (it won't pass the flyer
     # subject gate, so it produces nothing — the scraped PDF is the ad).
     kind: "web_pdf"
     weekly_ad_url: "https://www.rosauers.com/weekly-ad-missoula"
   - name: "Good Food Store"
     senders: ["communications@email.goodfoodstore.com", "*.goodfoodstore.com"]
-    ad_period_days: 14   # 2-week ad emailed once; keep it live across both weeks
+    # The sale email links to the sale-flyer page; its on-page JPG page previews
+    # are lazy-loaded (a headless screenshot only gets page 1), but the page also
+    # links a full-flyer PDF. We scrape that PDF directly every run — all pages,
+    # no email dependency. Senders stay only so the mail still classifies.
+    kind: "web_pdf"
+    weekly_ad_url: "https://www.goodfoodstore.com/sales-flyer/"
   - name: "Albertsons"
     senders: ["*.albertsons.com"]
   # Super1 — PARKED 2026-06-05: Stevensville + Hamilton are out of town, so we
@@ -76,8 +81,8 @@ stores:
   - name: "Yokes"           # two Missoula locations (Broadway + Reserve);
     # AI reads location from the ad header. See README §Stores: Yoke's only
     # allows one signup per email, so the mailbox uses two aliases (one per
-    # location) and `email_fetch.py` dedups on (sender, subject, To:) — the
-    # location is encoded in Mailchimp's per-recipient redirect, not the URL.
+    # location) and `email_fetch.py` keeps the most recent email per (store,
+    # To:) — the location is in Mailchimp's per-recipient redirect, not the URL.
     senders: ["no-reply@yokesfreshmarkets.com"]
   - name: "CHEF'STORE"      # Missoula (US Foods bulk/wholesale) — store #505.
     # Their weekly email links to chefstore.com/specials/, not a flyer image.
