@@ -38,11 +38,23 @@ COPY ai/      /app/ai/
 # the host wum if it isn't 1000:1000).
 ARG WUM_UID=1000
 ARG WUM_GID=1000
-RUN groupadd -g ${WUM_GID} wum \
- && useradd  -u ${WUM_UID} -g ${WUM_GID} -m -d /home/wum wum \
- && mkdir -p /app/site/output /app/pipeline/drafts \
- && chown -R wum:wum /app
-USER wum
+# Reuse the group/user if the GID/UID is already present in the base image
+# (e.g. a host user that shares a GID with an existing image group), so a
+# collision doesn't fail the build. UID/GID 0 is rejected outright: running
+# the pipeline as root would defeat the non-root hardening above — set
+# WUM_UID/WUM_GID to a real unprivileged host user instead.
+RUN set -eux; \
+    if [ "${WUM_UID}" = "0" ] || [ "${WUM_GID}" = "0" ]; then \
+        echo "WUM_UID/WUM_GID must not be 0 (root); use an unprivileged host user" >&2; \
+        exit 1; \
+    fi; \
+    if ! getent group "${WUM_GID}" >/dev/null; then groupadd -g "${WUM_GID}" wum; fi; \
+    if ! getent passwd "${WUM_UID}" >/dev/null; then \
+        useradd -u "${WUM_UID}" -g "${WUM_GID}" -m -d /home/wum wum; \
+    fi; \
+    mkdir -p /app/site/output /app/pipeline/drafts; \
+    chown -R "${WUM_UID}:${WUM_GID}" /app
+USER ${WUM_UID}:${WUM_GID}
 
 WORKDIR /app/pipeline
 CMD ["python", "run.py"]
