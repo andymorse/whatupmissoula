@@ -54,6 +54,14 @@ email:
 stores:
   - name: "Rosauers"
     senders: ["info@rosauers.com", "*.rosauers.com"]
+    # Rosauers' weekly email has a "Weekly Ad" button, but it only links to the
+    # weekly-ad page (no PDF attached). We ignore the email and scrape that page
+    # directly every run: the Missoula ad lives there as a PDF behind a
+    # pdf-poster-pro PDF.js viewer — see pipeline/rosauers_fetch.py. The senders
+    # above stay only so their mail still classifies (it won't pass the flyer
+    # subject gate, so it produces nothing — the scraped PDF is the ad).
+    kind: "web_pdf"
+    weekly_ad_url: "https://www.rosauers.com/weekly-ad-missoula"
   - name: "Good Food Store"
     senders: ["communications@email.goodfoodstore.com", "*.goodfoodstore.com"]
     ad_period_days: 14   # 2-week ad emailed once; keep it live across both weeks

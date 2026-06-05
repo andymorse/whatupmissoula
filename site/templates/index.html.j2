@@ -42,6 +42,8 @@
         <div class="item">{{ s.item }}</div>
         {% if s.sale_price is not none %}<div class="price">${{ '%.2f'|format(s.sale_price) }}</div>{% endif %}
         {% if s.unit and s.unit_price is not none %}<div class="unit">{{ '%.2f'|format(s.unit_price) }} {{ s.unit }}</div>{% endif %}
+        {% set thru = store_dates.get(s.store) %}
+        {% if thru %}<div class="steal-dates">through {{ thru|prettydate }}</div>{% endif %}
       </div>
       {% endfor %}
     </div>
@@ -61,8 +63,8 @@
           {% if store.kind == 'bulk_wholesale' %}<span class="store-kind bulk">Bulk / wholesale</span>{% endif %}
         </h3>
         <div class="dates">
-          {% if store.valid_from and store.valid_through %}{{ store.valid_from }} – {{ store.valid_through }}
-          {% elif store.valid_through %}Valid through {{ store.valid_through }}{% endif %}
+          {% if store.valid_from and store.valid_through %}{{ store.valid_from|prettydate }} – {{ store.valid_through|prettydate }}
+          {% elif store.valid_through %}Valid through {{ store.valid_through|prettydate }}{% endif %}
           {% if not store.in_scope %}<span class="caveat">not a tracked store</span>{% endif %}
         </div>
         {% if store.kind == 'bulk_wholesale' %}

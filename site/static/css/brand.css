@@ -90,6 +90,7 @@ h1, h2, h3, .label, nav, .btn { font-family: 'Montserrat', sans-serif; }
 .steal .item { color: var(--navy-deep); font-weight: 600; margin: 4px 0; }
 .steal .price { font-family: 'Montserrat'; font-weight: 800; font-size: 24px; color: var(--gold-dark); }
 .steal .unit { font-size: 13px; color: var(--gray-400); }
+.steal .steal-dates { font-size: 12px; font-weight: 600; color: var(--gold-dark); margin-top: 6px; }
 .steal-pick { border-top: 3px solid var(--gold); }
 .disclaimer { font-size: 13px; color: var(--gray-400); margin-top: 8px; max-width: 720px; }
 .disclaimer strong { color: var(--gold-dark); font-weight: 700; }
