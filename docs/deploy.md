@@ -67,6 +67,16 @@ In your registrar's DNS panel:
 Wait for propagation (`dig whatsupmissoula.com +short` should return your VPS IP).
 Caddy won't be able to provision a cert until DNS resolves.
 
+**If the domain is on Cloudflare, set the record to DNS-only (grey cloud),
+not proxied (orange cloud).** Proxied, `dig` returns Cloudflare's IPs instead
+of the VPS, Caddy's Let's Encrypt challenge can't validate against the origin,
+and the browser gets a TLS / connection error. DNS-only points straight at the
+VPS so Caddy issues its own cert. (Keeping the proxy is possible but needs a
+Cloudflare Origin Certificate + SSL mode "Full (strict)" — out of scope here.)
+Verify with the authoritative resolver, which skips local cache:
+`dig +short whatsupmissoula.com @1.1.1.1` should equal `curl -s4 ifconfig.me`
+on the VPS.
+
 ## 4. Clone + configure
 
 ```bash

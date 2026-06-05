@@ -132,10 +132,10 @@ only a hint — the AI confirms the real store from the ad image itself
 
 | Store | Path | Notes |
 |---|---|---|
-| Good Food Store | email → web flyer | Constant Contact → `goodfoodstore.com/sales-flyer/`. WordPress page exposes 3 full-res JPG pages + a PDF; the email anchor text is just "Click here", so `click here` is in `link_keywords`. |
-| Yoke's Fresh Market | email → web flyer | Mailchimp → `yokesfreshmarkets.com/weekly-ad/<location>`. **Two Missoula locations: Broadway + Reserve.** Yoke's signup form only allows one email per signup, so the mailbox uses two aliases (`whatupmissoula@`, `whatup2@`) — one subscribed to each location. Both emails arrive with identical sender, subject, and timestamp; Mailchimp encodes the store choice in the per-recipient `e=` token, which redirects to the correct `/broadway` or `/reserve` page. `email_fetch.py` dedups on `(sender, subject, To:)` so both location ads come through. |
+| Good Food Store | email → web flyer | Constant Contact → `goodfoodstore.com/sales-flyer/`. WordPress page exposes 3 full-res JPG pages + a PDF; the email anchor text is just "Click here", so `click here` is in `link_keywords`. **Runs a ~2-week ad but emails once**, so it's set `ad_period_days: 14` (see below) — otherwise the email ages out of the 8-day fetch window and the ad disappears in week 2. |
+| Yoke's Fresh Market | email → web flyer | Mailchimp → `yokesfreshmarkets.com/weekly-ad/<location>`. **Two Missoula locations: Broadway + Reserve.** Yoke's signup form only allows one email per signup, so the mailbox uses two aliases (`whatupmissoula@`, `whatup2@`) — one subscribed to each location. Both emails arrive with identical sender, subject, and timestamp; Mailchimp encodes the store choice in the per-recipient `e=` token, which redirects to the correct `/broadway` or `/reserve` page. `email_fetch.py` keeps the most recent flyer email per `(store, To:)`, so both location ads come through — the `To:` is what distinguishes them. |
 | Super 1 Foods | email → web flyer | Constant Contact → flyer redirect. Stevensville + Hamilton; AI reads location from the ad. Super 1 sometimes mixes formats — most weeks ship a normal "view the ad" link, but occasional one-offs (e.g. holiday promos) are inline-image emails with no link. The inline-image fallback ("Path B") is deferred until a second sample arrives. |
-| CHEF'STORE | email → structured JSON | US Foods restaurant-supply chain. Email links to `chefstore.com/specials/` → location picker → biweekly hotsheet. The hotsheet's list view embeds every product as `productData` JSON; `chefstore_fetch.py` follows `/content/setStore/505/specials/` (Missoula = store #505), scrapes the Biweekly Specials tab URL, parses the inline JSON, and emits Deal objects directly. **Tagged `kind: bulk_wholesale`** — case-pack pricing, separate badge, excluded from Top Steals. |
+| CHEF'STORE | email → structured JSON | US Foods restaurant-supply chain. Email links to `chefstore.com/specials/` → location picker → biweekly hotsheet. The hotsheet's list view embeds every product as `productData` JSON; `chefstore_fetch.py` follows `/content/setStore/505/specials/` (Missoula = store #505), scrapes the Biweekly Specials tab URL, parses the inline JSON, and emits Deal objects directly. **Tagged `kind: bulk_wholesale`** — case-pack pricing, separate badge, excluded from Top Steals. Biweekly like Good Food Store, so it's also set `ad_period_days: 14` to survive into week 2. |
 | Rosauers | email → (pending) | Mailchimp. Currently sending lifestyle/recipe emails ("425 Recipes with Brittany", "Summer Of Fruits") rather than a weekly ad — those get correctly dropped by the `subject_hints` whitelist. Investigation pending: whether Rosauers has a separate weekly-ad list. |
 | Albertsons | n/a | Welcome email arrived 2026-05-21; no real weekly ad yet. |
 
@@ -147,6 +147,17 @@ which store the price applies to. If a deal is identical at both locations,
 combine them ("Yoke's — Broadway & Reserve") rather than dropping the label.
 The location can be sourced reliably from the URL slug as a fallback to AI
 extraction.
+
+**Multi-week ad rule:** flyer emails are fetched in an IMAP `SINCE` window
+(`email.lookback_days`, default 8). A store that emails **once for a multi-week
+ad** (Good Food Store, CHEF'STORE) would age out of that window and vanish from
+the site partway through its run. Setting `ad_period_days: N` on the store entry
+keeps its most recent email "live" for `N` days (both are 14); the fetch widens
+its search to the longest period and filters per store. Weekly stores need
+nothing — they default to `lookback_days`. Note `pipeline/config.yaml` is
+gitignored, so this lives in each host's config (mirrored in
+`config.example.yaml`); the code change ships via git but the per-store value
+must be set on the box.
 
 ## Watchlist (owner + AI picks)
 
