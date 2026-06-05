@@ -59,10 +59,12 @@ stores:
     ad_period_days: 14   # 2-week ad emailed once; keep it live across both weeks
   - name: "Albertsons"
     senders: ["*.albertsons.com"]
-  - name: "Super1"          # Stevensville + Hamilton; AI reads location from ad
-    # URM (Super1's parent) sends marketing via Constant Contact's ccsend.com.
-    # Exact address — *.ccsend.com would match any Constant Contact customer.
-    senders: ["super1-advertising@urmstores.ccsend.com"]
+  # Super1 — PARKED 2026-06-05: Stevensville + Hamilton are out of town, so we
+  # skip them for now to save run time + AI tokens. Uncomment to re-enable.
+  # - name: "Super1"          # Stevensville + Hamilton; AI reads location from ad
+  #   # URM (Super1's parent) sends marketing via Constant Contact's ccsend.com.
+  #   # Exact address — *.ccsend.com would match any Constant Contact customer.
+  #   senders: ["super1-advertising@urmstores.ccsend.com"]
   - name: "Yokes"           # two Missoula locations (Broadway + Reserve);
     # AI reads location from the ad header. See README §Stores: Yoke's only
     # allows one signup per email, so the mailbox uses two aliases (one per
