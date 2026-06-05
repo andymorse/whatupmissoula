@@ -17,22 +17,21 @@ and there's no concurrent traffic to worry about.
 
 ## 1. Initial hardening (as root, first SSH in)
 
+This box is operated as **root over SSH (key-only)** — it's single-purpose,
+so there's no benefit to a sudo dance. The pipeline still runs **non-root
+inside the container** (uid 1000, see step 5), which is where the actual
+untrusted work happens. A named admin user / SSO can be layered on later
+without touching anything below.
+
 ```bash
 # Patch + auto-updates
 apt update && apt -y full-upgrade
 apt -y install ufw fail2ban unattended-upgrades curl
 dpkg-reconfigure --priority=low unattended-upgrades   # enable
 
-# Non-root user with sudo + docker (added in step 2)
-adduser --disabled-password --gecos "" wum
-usermod -aG sudo wum
-mkdir -p /home/wum/.ssh
-cp ~/.ssh/authorized_keys /home/wum/.ssh/
-chown -R wum:wum /home/wum/.ssh
-chmod 700 /home/wum/.ssh && chmod 600 /home/wum/.ssh/authorized_keys
-
-# SSH: key-only, no root login
-sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
+# SSH: key-only. PermitRootLogin prohibit-password = root may log in by SSH
+# key but never by password.
+sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config
 sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
 systemctl reload ssh
 
@@ -48,21 +47,13 @@ ufw --force enable
 systemctl enable --now fail2ban
 ```
 
-From here on, log in as `wum` (`ssh wum@<ip>`).
-
 ## 2. Install Docker
 
 ```bash
 # Docker official repo (apt's docker.io is older and we want compose v2)
-curl -fsSL https://get.docker.com | sudo sh
-sudo usermod -aG docker wum
-# Log out + back in so the group takes effect, then:
+curl -fsSL https://get.docker.com | sh
 docker --version && docker compose version
 ```
-
-Note: membership in the `docker` group is effectively root on this host
-(the docker socket lets you mount `/`). On a single-purpose box that's
-acceptable; just don't add unrelated users to it.
 
 ## 3. DNS
 
@@ -79,7 +70,7 @@ Caddy won't be able to provision a cert until DNS resolves.
 ## 4. Clone + configure
 
 ```bash
-sudo mkdir -p /srv/wum && sudo chown wum:wum /srv/wum
+mkdir -p /srv/wum
 cd /srv/wum
 git clone https://git.morse406.com/FractionalIT/WhatsUpMissoula.git .
 
@@ -96,13 +87,18 @@ nano pipeline/config.yaml   # confirm stores list is current
 
 ## 5. Build + bring up Caddy
 
+The pipeline container drops to a non-root user (uid 1000) so a bug or SSRF
+in the weekly job can't touch the image. That user has to read the mounted
+`.env`, which is mode 600 — so **`.env` must be owned by uid 1000 on the
+host**, even though you operate as root. That's the one ownership change the
+deploy needs.
+
 ```bash
 cd /srv/wum
 
-# If host wum isn't UID 1000, set WUM_UID/WUM_GID in .env before building.
-# The pipeline image bakes the user IDs in so the mounted .env is readable.
-test "$(id -u)" = 1000 || echo "WUM_UID=$(id -u)" >> .env
-test "$(id -g)" = 1000 || echo "WUM_GID=$(id -g)" >> .env
+# Hand the 600 secret to uid 1000 so the in-container user can read it.
+chown 1000:1000 .env
+chmod 600 .env
 
 docker compose build pipeline    # builds the python + chromium image (~5 min first time)
 docker compose up -d caddy       # starts Caddy; auto-issues TLS for WUM_DOMAIN
@@ -110,6 +106,19 @@ docker compose up -d caddy       # starts Caddy; auto-issues TLS for WUM_DOMAIN
 # Watch the cert handshake — should see "certificate obtained successfully"
 docker compose logs -f caddy
 ```
+
+Two traps worth knowing, both learned the hard way:
+
+- **Don't `chown -R` the whole `/srv/wum`.** It would also re-own the hidden
+  `.git` dir, and git (running as root) then refuses with "dubious ownership."
+  Only `.env` needs uid 1000; the repo stays owned by root. `config.yaml` and
+  other tracked files are mode 644 — readable by the container user as-is.
+- **Never set `WUM_UID`/`WUM_GID` to 0.** The image defaults them to 1000
+  (see `docker-compose.yml`), which matches the `.env` owner above, so you
+  don't touch them at all. The build deliberately *refuses* uid/gid 0 —
+  running the pipeline as root would defeat the non-root hardening. (An older
+  version of this guide auto-wrote `WUM_UID=$(id -u)`; as root that's `0` and
+  it breaks the build. It's gone now — don't reintroduce it.)
 
 The first hit at `https://<domain>` will 404 (volume is empty until the first
 publish). That's expected — Caddy is up, the site just hasn't been built yet.
@@ -130,14 +139,14 @@ After publish, `https://<domain>` serves the rendered site.
 
 ## 7. Weekly cron
 
-Edit `wum`'s crontab (`crontab -e`) and add:
+Edit root's crontab (`crontab -e`) and add:
 
 ```cron
 # Monday 06:00 — build the weekly draft. Publishing stays manual (review gate).
 0 6 * * 1  cd /srv/wum && /usr/bin/docker compose run --rm pipeline python run.py >> /var/log/wum.log 2>&1
 ```
 
-Then `sudo touch /var/log/wum.log && sudo chown wum:wum /var/log/wum.log`.
+Then `touch /var/log/wum.log`.
 
 Once you trust the output a few weeks running, fold publish into the cron:
 
@@ -148,7 +157,7 @@ Once you trust the output a few weeks running, fold publish into the cron:
 ## 8. Code updates
 
 ```bash
-ssh wum@<ip>
+ssh root@<ip>
 cd /srv/wum
 git pull
 docker compose build pipeline    # only if pipeline/ changed
