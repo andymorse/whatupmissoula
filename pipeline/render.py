@@ -31,9 +31,32 @@ TEMPLATES = SITE / "templates"
 STATIC = SITE / "static"
 
 
+def _watch_rank(source: str | None) -> int:
+    """Sort key: owner's picks first, AI staples next, everything else last.
+
+    Stable sorting on this key keeps the AI's value ranking intact *within* each
+    group, so we reorder by curation without scrambling the underlying ranking.
+    """
+    return {"mine": 0, "ai": 1}.get(source, 2)
+
+
+def _curate_order(report: WeeklyReport) -> None:
+    """Float editor's picks to the top — of Top Steals and of each store table.
+
+    The AI returns both lists in value order; the site owner wants their own
+    picks called out first (see ai/guidance.md §6). We do it here, deterministically,
+    rather than asking the model to also own presentation order.
+    """
+    report.top_steals.sort(key=lambda s: _watch_rank(s.watchlist_source if s.watchlist_hit else None))
+    for store in report.stores:
+        store.deals.sort(key=lambda d: _watch_rank(d.watchlist_source if d.watchlist_hit else None))
+
+
 def render(report: WeeklyReport, out_dir: str | Path) -> Path:
     out = Path(out_dir).resolve()
     out.mkdir(parents=True, exist_ok=True)
+
+    _curate_order(report)
 
     env = Environment(
         loader=FileSystemLoader(str(TEMPLATES)),

@@ -92,6 +92,7 @@ h1, h2, h3, .label, nav, .btn { font-family: 'Montserrat', sans-serif; }
 .steal .unit { font-size: 13px; color: var(--gray-400); }
 .steal .steal-dates { font-size: 12px; font-weight: 600; color: var(--gold-dark); margin-top: 6px; }
 .steal-pick { border-top: 3px solid var(--gold); }
+.order-note { font-size: 14px; color: var(--gray-600); margin-top: 6px; max-width: 720px; }
 .disclaimer { font-size: 13px; color: var(--gray-400); margin-top: 8px; max-width: 720px; }
 .disclaimer strong { color: var(--gold-dark); font-weight: 700; }
 .steal .editor-pick {

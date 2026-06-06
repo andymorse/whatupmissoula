@@ -29,6 +29,7 @@
   <div class="container">
     <span class="label">Don't miss</span>
     <h2>Top steals across town</h2>
+    <p class="order-note">{% if has_editor_pick %}Editor's picks first, then{% else %}Ranked by{% endif %} best dollar value across every store — not by store.</p>
     {% if has_editor_pick %}
     <p class="disclaimer">An <strong>★ Editor's pick</strong> is a personal favorite from the site owner — we surface these when they're on sale, separate from the AI's value ranking.</p>
     {% endif %}
