@@ -31,25 +31,26 @@ TEMPLATES = SITE / "templates"
 STATIC = SITE / "static"
 
 
-def _watch_rank(source: str | None) -> int:
-    """Sort key: owner's picks first, AI staples next, everything else last.
+def _is_editor_pick(item) -> bool:
+    """True for the site owner's own watchlist hits (the only ones we surface).
 
-    Stable sorting on this key keeps the AI's value ranking intact *within* each
-    group, so we reorder by curation without scrambling the underlying ranking.
+    AI-surfaced staples still drive value ranking, but the page no longer calls
+    them out, so they don't get floated either.
     """
-    return {"mine": 0, "ai": 1}.get(source, 2)
+    return bool(item.watchlist_hit and item.watchlist_source == "mine")
 
 
 def _curate_order(report: WeeklyReport) -> None:
     """Float editor's picks to the top — of Top Steals and of each store table.
 
-    The AI returns both lists in value order; the site owner wants their own
-    picks called out first (see ai/guidance.md §6). We do it here, deterministically,
-    rather than asking the model to also own presentation order.
+    The value ranking arrives in order; the site owner wants their own picks
+    called out first (see ai/guidance.md §6). A stable sort keeps the underlying
+    value order intact for everything else. Done here, deterministically, rather
+    than asking the model to also own presentation order.
     """
-    report.top_steals.sort(key=lambda s: _watch_rank(s.watchlist_source if s.watchlist_hit else None))
+    report.top_steals.sort(key=lambda s: 0 if _is_editor_pick(s) else 1)
     for store in report.stores:
-        store.deals.sort(key=lambda d: _watch_rank(d.watchlist_source if d.watchlist_hit else None))
+        store.deals.sort(key=lambda d: 0 if _is_editor_pick(d) else 1)
 
 
 def render(report: WeeklyReport, out_dir: str | Path) -> Path:
