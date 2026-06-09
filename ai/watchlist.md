@@ -57,3 +57,4 @@ Edit either list freely — changes here change what the page highlights next ru
 - Pasta (dry, 1 lb box)
 - Olive oil
 - Coffee (12 oz bag, whole bean or ground)
+- Ice Cream Any other brands beyond Wilcoxson or Tillamook
