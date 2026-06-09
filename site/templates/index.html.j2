@@ -1,9 +1,6 @@
 {% extends "base.html.j2" %}
 {% block title %}What's Up Missoula — Best Grocery Deals, Week of {{ report.week_of }}{% endblock %}
-{% set CATEGORIES = ['produce','meat_seafood','dairy_eggs','bakery','pantry','frozen','beverages','snacks','household','other'] %}
-{% macro cat_icon(category) %}{% set c = category if category in CATEGORIES else 'other' %}<svg class="cat-icon" aria-hidden="true"><use href="#cat-{{ c }}"></use></svg>{% endmacro %}
 {% block body %}
-{% include "_category_icons.svg.j2" %}
 <header class="hero">
   <div class="container">
     <div class="brand">
@@ -89,7 +86,7 @@
             {% set is_rec = d.watchlist_hit and d.watchlist_source == 'ai' %}
             <tr{% if d.watchlist_hit %} class="watch"{% endif %}>
               <td>
-                <span class="item-cell">{{ cat_icon(d.category) }}<span>{{ d.item }}</span></span>
+                {{ d.item }}
                 {% if is_pick %}
                   <span class="watch-badge watch-mine" title="Editor's pick — hand-picked by the site owner">★ Editor's pick</span>
                 {% elif is_rec %}

@@ -124,10 +124,6 @@ table.deals th {
   padding: 8px 10px; border-bottom: 2px solid var(--gray-100);
 }
 table.deals td { padding: 11px 10px; border-bottom: 1px solid var(--gray-100); vertical-align: top; }
-.cat-icon { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor;
-  stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; color: var(--gold-dark); }
-.item-cell { display: inline-flex; align-items: flex-start; gap: 9px; }
-.item-cell .cat-icon { margin-top: 1px; }
 table.deals .sale { font-weight: 700; color: var(--navy-deep); }
 table.deals .reg { color: var(--gray-400); text-decoration: line-through; font-size: 14px; }
 .pct { display: inline-block; background: rgba(255,201,0,0.16); color: var(--gold-dark);
