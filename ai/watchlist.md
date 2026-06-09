@@ -39,7 +39,7 @@ Edit either list freely — changes here change what the page highlights next ru
 - Olipop - Under 1.50 a can all flavors
 
 
-## ai_picks
+## WUM_picks
 <!-- Default staples. Trim or extend as the household's actual shopping changes. -->
 - Eggs (Grade A large, 1 dozen)
 - Milk (gallon, 2% or whole)
