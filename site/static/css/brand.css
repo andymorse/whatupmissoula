@@ -92,12 +92,19 @@ h1, h2, h3, .label, nav, .btn { font-family: 'Montserrat', sans-serif; }
 .steal .unit { font-size: 13px; color: var(--gray-400); }
 .steal .steal-dates { font-size: 12px; font-weight: 600; color: var(--gold-dark); margin-top: 6px; }
 .steal-pick { border-top: 3px solid var(--gold); }
+.steal-rec { border-top: 3px solid rgba(28,46,89,0.28); }
 .order-note { font-size: 14px; color: var(--gray-600); margin-top: 6px; max-width: 720px; }
 .disclaimer { font-size: 13px; color: var(--gray-400); margin-top: 8px; max-width: 720px; }
 .disclaimer strong { color: var(--gold-dark); font-weight: 700; }
 .steal .editor-pick {
   display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: 1px;
   text-transform: uppercase; color: var(--white); background: var(--gold-dark);
+  padding: 2px 8px; border-radius: 100px; margin-bottom: 8px;
+}
+.steal .wum-rec {
+  display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--navy-deep); background: rgba(28,46,89,0.08);
+  border: 1px solid rgba(28,46,89,0.18);
   padding: 2px 8px; border-radius: 100px; margin-bottom: 8px;
 }
 
@@ -117,6 +124,10 @@ table.deals th {
   padding: 8px 10px; border-bottom: 2px solid var(--gray-100);
 }
 table.deals td { padding: 11px 10px; border-bottom: 1px solid var(--gray-100); vertical-align: top; }
+.cat-icon { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor;
+  stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; color: var(--gold-dark); }
+.item-cell { display: inline-flex; align-items: flex-start; gap: 9px; }
+.item-cell .cat-icon { margin-top: 1px; }
 table.deals .sale { font-weight: 700; color: var(--navy-deep); }
 table.deals .reg { color: var(--gray-400); text-decoration: line-through; font-size: 14px; }
 .pct { display: inline-block; background: rgba(255,201,0,0.16); color: var(--gold-dark);
@@ -128,6 +139,7 @@ table.deals tr.watch td { background: rgba(255,201,0,0.06); }
 .watch-badge { display: inline-block; font-size: 11px; font-weight: 700;
   border-radius: 100px; padding: 1px 8px; margin-left: 6px; vertical-align: 2px; }
 .watch-mine { background: var(--gold-dark); color: var(--white); }
+.watch-wum { background: rgba(28,46,89,0.08); color: var(--navy-deep); border: 1px solid rgba(28,46,89,0.18); }
 
 /* --- Footer --- */
 footer { background: var(--navy-deep); color: rgba(255,255,255,0.72); padding: 40px 0; font-size: 13px; line-height: 1.6; }

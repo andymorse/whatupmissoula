@@ -1,6 +1,9 @@
 {% extends "base.html.j2" %}
 {% block title %}What's Up Missoula — Best Grocery Deals, Week of {{ report.week_of }}{% endblock %}
+{% set CATEGORIES = ['produce','meat_seafood','dairy_eggs','bakery','pantry','frozen','beverages','snacks','household','other'] %}
+{% macro cat_icon(category) %}{% set c = category if category in CATEGORIES else 'other' %}<svg class="cat-icon" aria-hidden="true"><use href="#cat-{{ c }}"></use></svg>{% endmacro %}
 {% block body %}
+{% include "_category_icons.svg.j2" %}
 <header class="hero">
   <div class="container">
     <div class="brand">
@@ -25,19 +28,24 @@
 
 {% if report.top_steals %}
 {% set has_editor_pick = report.top_steals|selectattr('watchlist_hit')|selectattr('watchlist_source','equalto','mine')|list|length > 0 %}
+{% set has_wum_rec = report.top_steals|selectattr('watchlist_hit')|selectattr('watchlist_source','equalto','ai')|list|length > 0 %}
 <section class="section">
   <div class="container">
     <span class="label">Don't miss</span>
     <h2>Top steals across town</h2>
-    <p class="order-note">{% if has_editor_pick %}Editor's picks first, then{% else %}Ranked by{% endif %} best dollar value across every store — not by store.</p>
-    {% if has_editor_pick %}
-    <p class="disclaimer">An <strong>★ Editor's pick</strong> is a personal favorite from the site owner — we surface these when they're on sale, on top of the best-value steals.</p>
+    <p class="order-note">{% if has_editor_pick or has_wum_rec %}Our picks first, then{% else %}Ranked by{% endif %} best dollar value across every store — not by store.</p>
+    {% if has_editor_pick or has_wum_rec %}
+    <p class="disclaimer">{% if has_editor_pick %}An <strong>★ Editor's pick</strong> is a personal favorite from the site owner. {% endif %}{% if has_wum_rec %}A <strong>WUM Recommendation</strong> is a household staple we think is worth grabbing when it's on sale.{% endif %}</p>
     {% endif %}
     <div class="steals" style="margin-top:24px">
       {% for s in report.top_steals %}
-      <div class="steal{% if s.watchlist_hit and s.watchlist_source == 'mine' %} steal-pick{% endif %}">
-        {% if s.watchlist_hit and s.watchlist_source == 'mine' %}
+      {% set s_pick = s.watchlist_hit and s.watchlist_source == 'mine' %}
+      {% set s_rec = s.watchlist_hit and s.watchlist_source == 'ai' %}
+      <div class="steal{% if s_pick %} steal-pick{% elif s_rec %} steal-rec{% endif %}">
+        {% if s_pick %}
         <div class="editor-pick" title="Hand-picked by the site owner">★ Editor's pick</div>
+        {% elif s_rec %}
+        <div class="wum-rec" title="A What's Up Missoula recommendation — a staple worth grabbing on sale">WUM Recommendation</div>
         {% endif %}
         <div class="store">{{ s.store }}</div>
         <div class="item">{{ s.item }}</div>
@@ -78,11 +86,14 @@
           <tbody>
             {% for d in store.deals %}
             {% set is_pick = d.watchlist_hit and d.watchlist_source == 'mine' %}
-            <tr{% if is_pick %} class="watch"{% endif %}>
+            {% set is_rec = d.watchlist_hit and d.watchlist_source == 'ai' %}
+            <tr{% if d.watchlist_hit %} class="watch"{% endif %}>
               <td>
-                {{ d.item }}
+                <span class="item-cell">{{ cat_icon(d.category) }}<span>{{ d.item }}</span></span>
                 {% if is_pick %}
                   <span class="watch-badge watch-mine" title="Editor's pick — hand-picked by the site owner">★ Editor's pick</span>
+                {% elif is_rec %}
+                  <span class="watch-badge watch-wum" title="A What's Up Missoula recommendation — a staple worth grabbing on sale">WUM Recommendation</span>
                 {% endif %}
               </td>
               <td class="sale">{% if d.sale_price is not none %}${{ '%.2f'|format(d.sale_price) }}{% else %}—{% endif %}</td>

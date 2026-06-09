@@ -31,26 +31,31 @@ TEMPLATES = SITE / "templates"
 STATIC = SITE / "static"
 
 
-def _is_editor_pick(item) -> bool:
-    """True for the site owner's own watchlist hits (the only ones we surface).
+def _curate_rank(item) -> int:
+    """Sort key: the owner's Editor's picks first, WUM Recommendations next,
+    everything else last.
 
-    AI-surfaced staples still drive value ranking, but the page no longer calls
-    them out, so they don't get floated either.
+    `watchlist_source == "mine"` is the owner's hand-picked list; `"ai"` are the
+    household staples we surface as a "WUM Recommendation." A stable sort keeps
+    the underlying value order intact *within* each group, so we reorder by
+    curation without scrambling the ranking.
     """
-    return bool(item.watchlist_hit and item.watchlist_source == "mine")
+    if not item.watchlist_hit:
+        return 2
+    return {"mine": 0, "ai": 1}.get(item.watchlist_source, 1)
 
 
 def _curate_order(report: WeeklyReport) -> None:
-    """Float editor's picks to the top — of Top Steals and of each store table.
+    """Float curated items to the top — of Top Steals and of each store table.
 
-    The value ranking arrives in order; the site owner wants their own picks
-    called out first (see ai/guidance.md §6). A stable sort keeps the underlying
-    value order intact for everything else. Done here, deterministically, rather
-    than asking the model to also own presentation order.
+    Editor's picks (the owner's own list) come first, then WUM Recommendations
+    (household staples), then everything else in value order (see ai/guidance.md
+    §6). Done here deterministically rather than asking the model to also own
+    presentation order.
     """
-    report.top_steals.sort(key=lambda s: 0 if _is_editor_pick(s) else 1)
+    report.top_steals.sort(key=_curate_rank)
     for store in report.stores:
-        store.deals.sort(key=lambda d: 0 if _is_editor_pick(d) else 1)
+        store.deals.sort(key=_curate_rank)
 
 
 def render(report: WeeklyReport, out_dir: str | Path) -> Path:
