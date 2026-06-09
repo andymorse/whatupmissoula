@@ -99,8 +99,10 @@ vision tokens.
 # Default weekly path — fetches emails, dispatches each to its store's path
 python pipeline/run.py
 
-# A) Render an arbitrary web flyer page (testing)
-python pipeline/run.py --url "https://orangestreetfoodfarm.com/weekly-ads/901" \
+# A) Render an arbitrary web flyer page (testing). NB: Orange Street's production
+#    path is kind: web_ad (web_ad_fetch.py), which auto-resolves the live ad id;
+#    this --url form just screenshots one specific page for ad-hoc checks.
+python pipeline/run.py --url "https://orangestreetfoodfarm.com/weekly-ads/906" \
                        --store "Orange Street Food Farm"
 
 # B) Manual drop — analyze flyer image(s)/PDF(s) you saved yourself.
@@ -137,6 +139,7 @@ only a hint — the AI confirms the real store from the ad image itself
 | Super 1 Foods | email → web flyer *(parked)* | **Parked 2026-06-05** — Stevensville + Hamilton are out of town; commented out in config to save run time/AI tokens. Re-enable by uncommenting the store block. Constant Contact → flyer redirect. Stevensville + Hamilton; AI reads location from the ad. Super 1 sometimes mixes formats — most weeks ship a normal "view the ad" link, but occasional one-offs (e.g. holiday promos) are inline-image emails with no link. The inline-image fallback ("Path B") is deferred until a second sample arrives. |
 | CHEF'STORE | email → structured JSON | US Foods restaurant-supply chain. Email links to `chefstore.com/specials/` → location picker → biweekly hotsheet. The hotsheet's list view embeds every product as `productData` JSON; `chefstore_fetch.py` follows `/content/setStore/505/specials/` (Missoula = store #505), scrapes the Biweekly Specials tab URL, parses the inline JSON, and emits Deal objects directly. **Tagged `kind: bulk_wholesale`** — case-pack pricing, separate badge, excluded from Top Steals. Biweekly: it emails once per 2-week cycle, so it's set `ad_period_days: 14` (see Multi-week ad rule) to survive into week 2. |
 | Rosauers | web PDF (no email) | Their email's "Weekly Ad" button just links to the weekly-ad page, so we skip the email entirely. `web_pdf_fetch.py` scrapes `rosauers.com/weekly-ad-missoula` every run, pulls the PDF out of the page's pdf-poster-pro PDF.js viewer (`file=` query param, robust to the rotating `/Week-N/` path + `?v=` cache-buster), and feeds it the shared PDF→vision path. Tagged `kind: web_pdf`; runs independent of any email. The printed "Ad Effective … thru …" line is read into `valid_from`/`valid_through`, so its deals carry expiry dates. |
+| Orange Street Food Farm | web ad (no email) | No flyer email — the ad is a full-page image on their ShopHero storefront at `orangestreetfoodfarm.com/weekly-ads/<ad_id>`. The page is **server-rendered** (their `unlazy` module emits the `<img>` server-side, so a plain GET gets every page — no headless browser, unlike Good Food Store's lazy previews). The ad id is **not** a stable +1 (904 = May 27–Jun 2, 906 = Jun 3–9; 905 is an empty placeholder, 907 500s until published), so `web_ad_fetch.py` scans ids forward from the last resolved one and picks the ad whose printed date range covers today, caching the id in `pipeline/state/`. ShopHero's CDN serves the image as **AVIF** (`f=auto`, ignores Accept), so `pillow-avif-plugin` is required to decode it. Tagged `kind: web_ad`; scraped every run. |
 | Albertsons | n/a | Welcome email arrived 2026-05-21; no real weekly ad yet. |
 
 **Multi-location rendering rule:** for stores with multiple Missoula locations

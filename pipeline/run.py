@@ -86,12 +86,16 @@ def main() -> int:
 
         web_pdf_stores = [s for s in cfg.get("stores", []) if s.get("kind") == "web_pdf"]
         web_pdf_names = {s["name"] for s in web_pdf_stores}
+        # Stores whose ad is a web-hosted image flyer (ShopHero SSR page) — no
+        # email, scraped every run like web_pdf. See web_ad_fetch.py.
+        web_ad_stores = [s for s in cfg.get("stores", []) if s.get("kind") == "web_ad"]
+        web_ad_names = {s["name"] for s in web_ad_stores}
 
         emails = fetch_flyer_emails(cfg)
         print(f"Found {len(emails)} flyer email(s).")
         chefstore_emails = [e for e in emails if e.store == "CHEF'STORE"]
-        flyer_emails = [e for e in emails
-                        if e.store != "CHEF'STORE" and e.store not in web_pdf_names]
+        flyer_emails = [e for e in emails if e.store != "CHEF'STORE"
+                        and e.store not in web_pdf_names and e.store not in web_ad_names]
 
         flyers = []
         for fe in flyer_emails:
@@ -114,6 +118,17 @@ def main() -> int:
                     flyers += fetch_web_pdf_flyers(s, cfg)
                 except Exception as e:             # a down site shouldn't sink the run
                     print(f"  ! {s['name']}: web-PDF fetch failed ({e}) — skipping", file=sys.stderr)
+
+        # Web-ad stores (Orange Street Food Farm): ShopHero image flyer scraped
+        # every run, independent of email.
+        if web_ad_stores:
+            from web_ad_fetch import fetch_web_ad_flyers
+            for s in web_ad_stores:
+                print(f"  • {s['name']}: fetching web-ad weekly flyer…")
+                try:
+                    flyers += fetch_web_ad_flyers(s, cfg)
+                except Exception as e:             # a down site shouldn't sink the run
+                    print(f"  ! {s['name']}: web-ad fetch failed ({e}) — skipping", file=sys.stderr)
 
         if flyers:
             print(f"  → {len(flyers)} image tile(s); analyzing with AI…")

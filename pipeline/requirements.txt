@@ -4,4 +4,5 @@ PyYAML>=6.0            # config
 Jinja2>=3.1            # static site rendering
 pdf2image>=1.17        # PDF flyers -> page images for vision
 Pillow>=10.0           # image handling / downscaling
+pillow-avif-plugin>=1.4 # decode AVIF flyer images (Orange Street / ShopHero serve f=auto AVIF)
 python-dotenv>=1.0     # load .env

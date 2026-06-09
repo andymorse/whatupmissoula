@@ -26,7 +26,9 @@ Confirmed (weekly-ad emails)
 - Albertsons
 
 Web flyer (rendered from the store's weekly-ad page)
-- Orange Street Food Farm (Orange St and Reserve St) - https://orangestreetfoodfarm.com/weekly-ads → https://orangestreetfoodfarm.com/weekly-ads/901
+- Orange Street Food Farm (Orange St and Reserve St) — one chain ad, scraped
+  from their ShopHero storefront (https://orangestreetfoodfarm.com/weekly-ads);
+  the live ad id is resolved by date each run. See pipeline/web_ad_fetch.py.
 - Costco (note: membership required; flag deals as members-only)
 
 Not covered — no weekly ad

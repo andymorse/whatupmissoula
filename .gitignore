@@ -12,6 +12,7 @@ __pycache__/
 site/output/
 pipeline/.cache/
 pipeline/drafts/
+pipeline/state/
 *.eml
 
 # OS / editor
