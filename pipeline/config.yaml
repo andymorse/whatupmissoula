@@ -12,6 +12,7 @@ site:
   base_url: "https://whatsupmissoula.com"   # confirm final domain/spelling
   output_dir: "../site/output"               # rendered static site (live)
   draft_dir: "drafts"                          # rendered draft, pre-review
+  drops_dir: "../drops"                        # manual flyer drops (PDFs/images), merged each run
 
 ai:
   provider: "claude"          # overridden by AI_PROVIDER env if set

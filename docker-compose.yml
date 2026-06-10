@@ -38,6 +38,7 @@ services:
     volumes:
       - ./.env:/app/.env:ro             # mailbox + AI API key (host file, 600)
       - ./pipeline/config.yaml:/app/pipeline/config.yaml:ro
+      - ./drops:/app/drops              # manual flyer drops (Albertsons etc.); upload PDFs here
       - wum_site:/app/site/output       # rendered output (also served by caddy)
       - wum_drafts:/app/pipeline/drafts # drafts persist between build & publish
 

@@ -51,6 +51,12 @@ def main() -> int:
 
     week_of = monday_of_this_week()
 
+    # Manual drop folder: PDFs/images hand-uploaded for stores with no scrapeable
+    # ad (e.g. Albertsons). Merged into the default weekly run, then archived.
+    drops_dir = (HERE / cfg["site"].get("drops_dir", "../drops")).resolve()
+    drops_archive = drops_dir / "_archive"
+    drop_files: list[Path] = []
+
     if args.sample:
         report = WeeklyReport.from_dict(json.loads((HERE / "sample_report.json").read_text()))
     elif args.url:
@@ -130,6 +136,19 @@ def main() -> int:
                 except Exception as e:             # a down site shouldn't sink the run
                     print(f"  ! {s['name']}: web-ad fetch failed ({e}) — skipping", file=sys.stderr)
 
+        # Manual drops (Albertsons etc.): files placed in drops/<Store>/ are
+        # merged into this run; subfolder name is the store hint. Skip anything
+        # already moved under the _archive subfolder.
+        if drops_dir.exists():
+            from extract import gather_flyer_files, to_flyer_images_pairs
+            drop_pairs = [(p, h) for p, h in gather_flyer_files(drops_dir)
+                          if drops_archive not in p.parents]
+            if drop_pairs:
+                ds = sorted({h for _, h in drop_pairs})
+                print(f"  • manual drops: {len(drop_pairs)} file(s) → {', '.join(ds)}")
+                flyers += to_flyer_images_pairs(drop_pairs, cfg)
+                drop_files = [p for p, _ in drop_pairs]
+
         if flyers:
             print(f"  → {len(flyers)} image tile(s); analyzing with AI…")
             report = analyze(flyers, week_of, cfg)
@@ -156,6 +175,10 @@ def main() -> int:
 
     path = render(report, draft_dir)
     print(f"Draft rendered → {path}")
+    if drop_files:
+        from extract import archive_drops
+        archive_drops(drop_files, drops_archive, week_of)
+        print(f"Archived {len(drop_files)} manual drop file(s) → {drops_archive}")
     print("Review it, then run:  python run.py --publish")
     return 0
 

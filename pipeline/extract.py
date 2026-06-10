@@ -40,6 +40,20 @@ def gather_flyer_files(root: str | Path, default_store: str | None = None) -> li
     return pairs
 
 
+def archive_drops(files: list[Path], archive_root: Path, week_of: str) -> None:
+    """Move processed drop files into archive_root/<week_of>/<store>/ so the next
+    run doesn't re-analyze them. Best-effort: keeps the store-subfolder name.
+    """
+    import shutil
+
+    for f in files:
+        if not f.exists():
+            continue
+        dest = archive_root / week_of / f.parent.name
+        dest.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(f), str(dest / f.name))
+
+
 def to_flyer_images(paths: list[Path], cfg: dict) -> list[FlyerImage]:
     """Email/attachment path: hint from the saved filename's 'sender__' prefix."""
     pairs = [(p, p.name.split("__", 1)[0]) for p in paths]

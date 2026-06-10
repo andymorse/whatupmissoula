@@ -16,5 +16,12 @@ pipeline/drafts/
 pipeline/state/
 *.eml
 
+# Manual flyer drops: track the folder skeleton (README + .gitkeep), never the
+# uploaded PDFs/images or the archived copies.
+/drops/**
+!/drops/**/
+!/drops/README.md
+!/drops/**/.gitkeep
+
 # OS / editor
 .DS_Store
