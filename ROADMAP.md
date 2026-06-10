@@ -18,8 +18,9 @@ hold. Link to an issue or a doc if there's more detail.
 ## Now
 *Actively being worked or next up.*
 
-- [ ] **Cron automation** — move off manual runs to a scheduled weekly job; the
-  pipeline is still run by hand each Monday.
+- [ ] **Cron automation** — move off manual runs to a scheduled weekly job.
+  Schedule for **Wednesday morning** — that's when the store ads land in the
+  mailbox. Currently run by hand.
 
 ## Next
 *Decided, not started.*
