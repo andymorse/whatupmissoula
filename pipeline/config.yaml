@@ -1,0 +1,103 @@
+# Live config for What's Up Missoula — tracked in git as the canonical copy so a
+# server rebuild can restore it. Secrets stay in .env, NEVER here. See
+# config.example.yaml for the fully-commented template/reference.
+#
+# NOTE: this file is mounted read-only into the container (docker-compose.yml) and
+# kept out of the image (.dockerignore). Since it's now tracked, edit it via git
+# (commit + pull) rather than hand-editing on the VPS, or `git pull` will conflict
+# with the host's working copy.
+
+site:
+  name: "What's Up Missoula"
+  base_url: "https://whatsupmissoula.com"   # confirm final domain/spelling
+  output_dir: "../site/output"               # rendered static site (live)
+  draft_dir: "drafts"                          # rendered draft, pre-review
+
+ai:
+  provider: "claude"          # overridden by AI_PROVIDER env if set
+  model: "claude-opus-4-7"
+  guidance_file: "../ai/guidance.md"
+  watchlist_file: "../ai/watchlist.md"   # optional; missing file is OK
+  max_pages_per_flyer: 8       # cap vision input per flyer
+  image_max_px: 1600           # downscale long edge before sending
+
+email:
+  lookback_days: 8
+  # A flyer email must come from a known store sender (stores[].senders below)
+  # AND its subject must match one of these hints — this keeps welcome/receipt/
+  # account emails out. Tune once real weekly-ad emails arrive.
+  subject_hints:
+    ["weekly ad", "weekly specials", "this week", "this week's", "deals",
+     "savings", "sale", "specials", "ad is here", "fresh deals", "save big"]
+  # The flyer email links to a web-hosted ad (tracking redirect → Flipp/SPA).
+  # We pick the anchor whose text/url best matches these, skipping the excludes,
+  # then render that URL with web_flyer (headless browser follows the redirect).
+  # "click here" is included because Good Food Store's flyer email uses bare
+  # "Click here" as the only anchor text — the subject_hints gate keeps this
+  # narrow enough that generic "Click here" links don't cause false positives.
+  link_keywords:
+    ["weekly ad", "view ad", "view the ad", "see the ad", "shop the ad",
+     "browse the ad", "this week", "weekly specials", "circular", "flyer",
+     "deals", "savings", "specials", "click here"]
+  # NOTE: exclusion substrings are checked against both URL and anchor text, so
+  # they must be specific enough to not match infrastructure domains. E.g. bare
+  # "manage" would false-positive on Mailchimp's `list-manage.com` and kill
+  # legit "view weekly ad" anchors (Yoke's, 2026-05-27).
+  link_exclude:
+    ["unsubscribe", "preferences", "privacy", "profile", "manage preferences",
+     "manage subscription", "opt out", "update your", "facebook", "instagram",
+     "twitter", "x.com", "youtube", "tiktok", "pinterest", "mailto:",
+     "app store", "google play", "apps.apple"]
+
+# Stores in scope (mirror ai/guidance.md §2). `senders` maps a store to the
+# addresses its flyer emails come from (supports "*.domain" wildcards). The
+# store name here is just a hint — the AI confirms the real store from the ad.
+# Senders below are GUESSES from welcome emails (2026-05-21) — CONFIRM with a
+# real weekly-ad email. WinCo is excluded (no weekly ad).
+stores:
+  - name: "Rosauers"
+    senders: ["info@rosauers.com", "*.rosauers.com"]
+    # Rosauers' weekly email has a "Weekly Ad" button, but it only links to the
+    # weekly-ad page (no PDF attached). We ignore the email and scrape that page
+    # directly every run: the Missoula ad lives there as a PDF behind a
+    # pdf-poster-pro PDF.js viewer — see pipeline/web_pdf_fetch.py. The senders
+    # above stay only so their mail still classifies (it won't pass the flyer
+    # subject gate, so it produces nothing — the scraped PDF is the ad).
+    kind: "web_pdf"
+    weekly_ad_url: "https://www.rosauers.com/weekly-ad-missoula"
+  - name: "Good Food Store"
+    senders: ["communications@email.goodfoodstore.com", "*.goodfoodstore.com"]
+    # The sale email links to the sale-flyer page; its on-page JPG page previews
+    # are lazy-loaded (a headless screenshot only gets page 1), but the page also
+    # links a full-flyer PDF. We scrape that PDF directly every run — all pages,
+    # no email dependency. Senders stay only so the mail still classifies.
+    kind: "web_pdf"
+    weekly_ad_url: "https://www.goodfoodstore.com/sales-flyer/"
+  - name: "Albertsons"
+    senders: ["*.albertsons.com"]
+  - name: "Orange Street Food Farm"   # Orange St + Reserve St; one chain ad
+    # No email — full-page JPG on their ShopHero storefront at /weekly-ads/<id>.
+    # Ad id isn't a stable +1 (904→906 observed, 905 empty); web_ad_fetch.py
+    # scans forward and picks the ad whose date range covers today.
+    kind: "web_ad"
+    weekly_ad_url: "https://www.orangestreetfoodfarm.com/weekly-ads"
+    ad_seed_id: 906
+    scan_window: 8
+  # Super1 — PARKED 2026-06-05: Stevensville + Hamilton are out of town, so we
+  # skip them for now to save run time + AI tokens. Uncomment to re-enable.
+  # - name: "Super1"          # Stevensville + Hamilton; AI reads location from ad
+  #   # URM (Super 1's parent) sends marketing via Constant Contact's ccsend.com.
+  #   # Exact address — *.ccsend.com would match any Constant Contact customer.
+  #   senders: ["super1-advertising@urmstores.ccsend.com"]
+  - name: "Yokes"           # two Missoula locations; AI reads location from ad
+    senders: ["no-reply@yokesfreshmarkets.com"]
+  - name: "CHEF'STORE"      # Missoula (US Foods bulk/wholesale) — store #505
+    # Email links to chefstore.com/specials/, not a flyer. We bypass vision
+    # and pull deals from the biweekly hotsheet's embedded JSON — see
+    # pipeline/chefstore_fetch.py. The sender below is the From: address;
+    # the marketing tracking link is on click.email.chefstore.com but the
+    # email itself comes from email.chefstore.com.
+    senders: ["chefstore@email.chefstore.com"]
+    kind: "bulk_wholesale"
+    store_id: 505
+    ad_period_days: 14       # biweekly hotsheet; keep the email live for 2 weeks
