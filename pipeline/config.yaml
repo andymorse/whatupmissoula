@@ -52,8 +52,8 @@ email:
 # Stores in scope (mirror ai/guidance.md §2). `senders` maps a store to the
 # addresses its flyer emails come from (supports "*.domain" wildcards). The
 # store name here is just a hint — the AI confirms the real store from the ad.
-# Senders below are GUESSES from welcome emails (2026-05-21) — CONFIRM with a
-# real weekly-ad email. WinCo is excluded (no weekly ad).
+# Senders below were CONFIRMED against real weekly-ad emails on 2026-05-27.
+# WinCo is excluded (no weekly ad).
 stores:
   - name: "Rosauers"
     senders: ["info@rosauers.com", "*.rosauers.com"]
