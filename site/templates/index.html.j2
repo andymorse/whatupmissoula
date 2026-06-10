@@ -31,18 +31,15 @@
     <span class="label">Don't miss</span>
     <h2>Top steals across town</h2>
     <p class="order-note">{% if has_editor_pick or has_wum_rec %}Our picks first, then{% else %}Ranked by{% endif %} best dollar value across every store — not by store.</p>
-    {% if has_editor_pick or has_wum_rec %}
-    <p class="disclaimer">{% if has_editor_pick %}An <strong>★ Editor's pick</strong> is a personal favorite from the site owner. {% endif %}{% if has_wum_rec %}A <strong>WUM Recommendation</strong> is a household staple we think is worth grabbing when it's on sale.{% endif %}</p>
-    {% endif %}
     <div class="steals" style="margin-top:24px">
       {% for s in report.top_steals %}
       {% set s_pick = s.watchlist_hit and s.watchlist_source == 'mine' %}
       {% set s_rec = s.watchlist_hit and s.watchlist_source == 'ai' %}
       <div class="steal{% if s_pick %} steal-pick{% elif s_rec %} steal-rec{% endif %}">
         {% if s_pick %}
-        <div class="editor-pick" title="Hand-picked by the site owner">★ Editor's pick</div>
+        <div class="editor-pick" title="A personal favorite of the WUM team">★ Editor's Pick</div>
         {% elif s_rec %}
-        <div class="wum-rec" title="A What's Up Missoula recommendation — a staple worth grabbing on sale">WUM Recommendation</div>
+        <div class="wum-rec" title="A household staple worth grabbing when it's on sale">WUM Pick</div>
         {% endif %}
         <div class="store">{{ s.store }}</div>
         <div class="item">{{ s.item }}</div>
@@ -53,6 +50,12 @@
       </div>
       {% endfor %}
     </div>
+    {% if has_editor_pick or has_wum_rec %}
+    <div class="pick-legend">
+      {% if has_editor_pick %}<p><span class="ed">★ Editor's Pick</span> — a personal favorite of the WUM team.</p>{% endif %}
+      {% if has_wum_rec %}<p><span class="wp">WUM Pick</span> — a household staple worth grabbing when it's on sale.</p>{% endif %}
+    </div>
+    {% endif %}
   </div>
 </section>
 {% endif %}
@@ -88,9 +91,9 @@
               <td>
                 {{ d.item }}
                 {% if is_pick %}
-                  <span class="watch-badge watch-mine" title="Editor's pick — hand-picked by the site owner">★ Editor's pick</span>
+                  <span class="watch-badge watch-mine" title="A personal favorite of the WUM team">★ Editor's Pick</span>
                 {% elif is_rec %}
-                  <span class="watch-badge watch-wum" title="A What's Up Missoula recommendation — a staple worth grabbing on sale">WUM Recommendation</span>
+                  <span class="watch-badge watch-wum" title="A household staple worth grabbing when it's on sale">WUM Pick</span>
                 {% endif %}
               </td>
               <td class="sale">{% if d.sale_price is not none %}${{ '%.2f'|format(d.sale_price) }}{% else %}—{% endif %}</td>

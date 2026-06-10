@@ -98,6 +98,10 @@ h1, h2, h3, .label, nav, .btn { font-family: 'Montserrat', sans-serif; }
 .order-note { font-size: 14px; color: var(--gray-600); margin-top: 6px; max-width: 720px; }
 .disclaimer { font-size: 13px; color: var(--gray-400); margin-top: 8px; max-width: 720px; }
 .disclaimer strong { color: var(--gold-dark); font-weight: 700; }
+.pick-legend { margin-top: 24px; }
+.pick-legend p { font-size: 13px; color: var(--gray-600); margin-top: 6px; max-width: 720px; }
+.pick-legend .ed { color: var(--gold-dark); font-weight: 700; }
+.pick-legend .wp { color: var(--navy-deep); font-weight: 700; }
 .steal .editor-pick {
   display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: 1px;
   text-transform: uppercase; color: var(--white); background: var(--gold-dark);
