@@ -42,6 +42,8 @@ hold. Link to an issue or a doc if there's more detail.
 - [ ] **Deal filtering (e.g. organic only)** — client-side, CSS-only toggle to
   stay within the static/no-backend model. Needs the organic tag first, and is
   gated behind the broader UI pass.
+- [ ] **Price history** — track item prices over time to show value trends and
+  spot whether a "deal" is actually a good price.
 - [ ] **Blog section** — the reserved Hugo section for longer writeups.
 
 ---
