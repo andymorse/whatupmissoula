@@ -37,6 +37,7 @@ Edit either list freely — changes here change what the page highlights next ru
   or string cheese — those are different products even though the brand matches.
 - Epic Meat Strips - All kinds or varieties but would like the price to be close to 1.50 per strip.
 - Olipop - Under 1.50 a can all flavors
+- Johnsonville - Beddar Cheddar Smoked Sausage
 
 
 ## WUM_picks
