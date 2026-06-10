@@ -80,7 +80,9 @@ h1, h2, h3, .label, nav, .btn { font-family: 'Montserrat', sans-serif; }
 .section .label { color: var(--gold-dark); }
 
 /* --- Top steals strip --- */
-.steals { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; }
+/* Fixed 4-up so the row count is predictable (12 steals = 3 full rows). Drops to
+   2-up on tablet and 1-up on phones — 12 stays complete at every breakpoint. */
+.steals { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
 .steal {
   background: var(--white); border-radius: var(--radius); padding: 18px 20px;
   box-shadow: var(--shadow-sm); transition: all 0.3s ease;
@@ -146,4 +148,9 @@ footer p:last-child { margin-bottom: 0; }
 @media (max-width: 768px) {
   .section { padding: 44px 0; }
   table.deals .unit-col { display: none; }
+  .steals { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .steals { grid-template-columns: 1fr; }
 }

@@ -116,17 +116,39 @@ After extracting all stores, choose one **best store of the week** and write a
   chicken, ground beef, coffee).
 - Fewest strings attached (loyalty/limits matter less than raw value, but note them).
 
-Also surface a short **"top steals"** list (≈5–8) — the single best individual
-deals across all stores this week, each tagged with its store.
+Also surface a **"top steals"** list — the single best individual deals across
+all stores this week, each tagged with its store. **Return at least 12** (a few
+more is fine); the site renders them in a 4-up grid and trims to a full 3×4 of
+12, keeping the strongest, so give it a clean dozen ranked best-value first.
+
+**Seasonal relevance.** Read the season and any holiday within ~2 weeks of
+`week_of`, and let it shape the *mix* of steals — when deals are close in value,
+favor what people are actually cooking right now. Examples (not exhaustive):
+
+- **Memorial Day / July 4th / Labor Day (cookouts):** ground beef & patties, hot
+  dogs & brats, buns, BBQ sauce & condiments, charcoal, watermelon, corn,
+  berries, potato/pasta-salad makings, ice cream, chips & soda.
+- **Thanksgiving:** turkey, stuffing, potatoes, cranberry, broth, baking
+  staples, pie ingredients.
+- **Winter holidays:** ham/roasts, baking (flour, sugar, butter, chocolate),
+  eggnog, citrus.
+- **Back-to-school (late Aug):** lunch meat, bread, snacks, juice boxes.
+- **Super Bowl:** wings, chips, dips, soda. **Summer:** fresh produce, grilling,
+  cold treats. **Deep winter:** soups, roasts, citrus.
+
+Keep it honest — §3 still gates inclusion. Only surface a seasonal item if it's a
+genuinely good deal; never pad the list with mediocre prices or invent a deal
+that isn't in a flyer. Seasonal relevance breaks ties and shapes the mix; it does
+not lower the value bar.
 
 **Watchlist bubble-up.** Any deal that matched `my_picks` (i.e. has
 `watchlist_hit: true` AND `watchlist_source: "mine"` in its store block) must
 also appear in `top_steals` regardless of whether it would have ranked on raw
 value alone — the site owner wants those called out front and center. Carry
 `watchlist_hit: true` and `watchlist_source: "mine"` onto the TopSteal entry so
-the page can label it "Editor's pick." It's fine if this pushes the list to
-9–10 entries that week; do not, however, force `ai_picks` matches up — those
-should only land in `top_steals` if they're genuinely among the best deals.
+the page can label it "Editor's pick." These are floated to the front and kept
+when the list is trimmed, so always include them. Don't force `ai_picks` matches
+up — those land in `top_steals` only if they're genuinely among the best.
 
 ## 7. Output format (strict JSON)
 

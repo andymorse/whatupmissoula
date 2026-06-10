@@ -31,6 +31,27 @@ TEMPLATES = SITE / "templates"
 STATIC = SITE / "static"
 
 
+TOP_STEALS_TARGET = 12  # page shows Top Steals in a 4-up grid; 12 = 3 full rows
+
+
+def _cap_top_steals(report: WeeklyReport) -> None:
+    """Trim Top Steals to a full grid so the last row is never ragged.
+
+    Guidance asks the model for at least TOP_STEALS_TARGET; we keep that many when
+    available, else fall back to the largest complete row of 4. Run after
+    _curate_order, which has already floated editor's picks / WUM recommendations
+    to the front — so trimming only ever drops the lowest-value extras.
+    """
+    n = len(report.top_steals)
+    if n >= TOP_STEALS_TARGET:
+        keep = TOP_STEALS_TARGET
+    elif n >= 4:
+        keep = (n // 4) * 4
+    else:
+        keep = n
+    report.top_steals = report.top_steals[:keep]
+
+
 def _curate_rank(item) -> int:
     """Sort key: the owner's Editor's picks first, WUM Recommendations next,
     everything else last.
@@ -63,6 +84,7 @@ def render(report: WeeklyReport, out_dir: str | Path) -> Path:
     out.mkdir(parents=True, exist_ok=True)
 
     _curate_order(report)
+    _cap_top_steals(report)
 
     env = Environment(
         loader=FileSystemLoader(str(TEMPLATES)),
