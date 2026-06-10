@@ -29,8 +29,9 @@ hold. Link to an issue or a doc if there's more detail.
   email mechanism — `mailto:` vs a small backend.)*
 - [ ] **Albertsons deals source** — no scrapeable flyer (store-gated SPA), so
   bring it in via the email mailbox or manual `--images`.
-- [ ] **Organic tag** — flag deals as organic so it's clear at a glance; sets
-  up later filtering and surfaces whether any Top Steals are organic.
+- [ ] **Organic tag** — flag deals as organic (data + badge) so it's clear at a
+  glance; surfaces whether any Top Steals are organic. Data groundwork for
+  filtering later.
 
 ## Later
 *Ideas worth keeping; not committed.*
@@ -38,6 +39,9 @@ hold. Link to an issue or a doc if there's more detail.
 - [ ] **Inline-image promo support ("Path B")** — handle email flyers that ship
   as an inline image with no "view the ad" link. *(deferred until a second
   inline-only sample shows up.)*
+- [ ] **Deal filtering (e.g. organic only)** — client-side, CSS-only toggle to
+  stay within the static/no-backend model. Needs the organic tag first, and is
+  gated behind the broader UI pass.
 - [ ] **Blog section** — the reserved Hugo section for longer writeups.
 
 ---
