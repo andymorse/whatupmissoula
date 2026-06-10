@@ -29,6 +29,8 @@ hold. Link to an issue or a doc if there's more detail.
   email mechanism — `mailto:` vs a small backend.)*
 - [ ] **Albertsons deals source** — no scrapeable flyer (store-gated SPA), so
   bring it in via the email mailbox or manual `--images`.
+- [ ] **Organic tag** — flag deals as organic so it's clear at a glance; sets
+  up later filtering and surfaces whether any Top Steals are organic.
 
 ## Later
 *Ideas worth keeping; not committed.*
