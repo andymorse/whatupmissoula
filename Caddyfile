@@ -2,7 +2,8 @@
 # `caddy_data` volume holds the ACME account + certs across restarts.
 #
 # CSP allows: same-origin assets + Google Fonts (the template loads
-# Montserrat). Tighten if the template drops external fonts.
+# Montserrat) + Rybbit analytics (script + event beacons to app.rybbit.io).
+# Tighten if the template drops external fonts or analytics.
 
 {
 	email {$WUM_TLS_EMAIL}
@@ -22,7 +23,7 @@
 		X-Frame-Options "DENY"
 		Referrer-Policy "strict-origin-when-cross-origin"
 		Permissions-Policy "interest-cohort=()"
-		Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+		Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; script-src 'self' https://app.rybbit.io; connect-src 'self' https://app.rybbit.io; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
 	}
 
 	# 404s shouldn't echo whatever the client asked for back at them.
