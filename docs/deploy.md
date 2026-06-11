@@ -188,6 +188,30 @@ docker compose restart caddy     # only if Caddyfile changed
 The next cron tick (or a manual `docker compose run --rm pipeline …`) picks
 up new code. Caddy keeps serving the existing site through the update.
 
+Three different "updates" that are easy to confuse:
+- **Pipeline code changed** (`pipeline/`, templates) → `docker compose build pipeline`.
+  Templates are baked into the image, so a `git pull` alone is not enough.
+- **Caddyfile changed** (CSP, headers, routing) → `docker compose restart caddy`.
+  The Caddyfile is a bind mount, so no rebuild — just a config reload.
+- **Caddy version update** (new Caddy release) → see below.
+
+### Updating Caddy itself
+
+The service is pinned to the floating `caddy:2-alpine` tag, so updating is just
+pulling the newest 2.x image and recreating the container:
+
+```bash
+cd /srv/wum
+docker compose pull caddy     # fetch the latest caddy:2-alpine
+docker compose up -d caddy     # recreate the container on the new image
+docker image prune -f          # optional: reclaim the old image layer
+```
+
+Safe and near-zero-downtime: TLS certs + the ACME account live in the
+`caddy_data` volume (not the container), so an update never re-issues certs.
+Only a sub-second blip while the container recreates. Run it whenever — a
+monthly habit, or when you see a Caddy security release.
+
 ## 9. Backup
 
 Two volumes hold state worth keeping:
