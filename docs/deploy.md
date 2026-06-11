@@ -100,8 +100,10 @@ nano pipeline/config.yaml   # confirm stores list is current
 The pipeline container drops to a non-root user (uid 1000) so a bug or SSRF
 in the weekly job can't touch the image. That user has to read the mounted
 `.env`, which is mode 600 — so **`.env` must be owned by uid 1000 on the
-host**, even though you operate as root. That's the one ownership change the
-deploy needs.
+host**, even though you operate as root. The same applies to the **`drops/`**
+folder: the pipeline *moves* processed manual flyers into `drops/_archive/`,
+so uid 1000 needs write access to the whole drops tree. These are the two
+ownership changes the deploy needs.
 
 ```bash
 cd /srv/wum
@@ -109,6 +111,11 @@ cd /srv/wum
 # Hand the 600 secret to uid 1000 so the in-container user can read it.
 chown 1000:1000 .env
 chmod 600 .env
+
+# Manual-drop folder is a writable surface: the pipeline archives processed
+# flyers into drops/_archive/, so uid 1000 must own the whole drops tree.
+# (Uploads via SFTP land as root; the container still needs to move them.)
+chown -R 1000:1000 drops
 
 docker compose build pipeline    # builds the python + chromium image (~5 min first time)
 docker compose up -d caddy       # starts Caddy; auto-issues TLS for WUM_DOMAIN
@@ -121,8 +128,12 @@ Two traps worth knowing, both learned the hard way:
 
 - **Don't `chown -R` the whole `/srv/wum`.** It would also re-own the hidden
   `.git` dir, and git (running as root) then refuses with "dubious ownership."
-  Only `.env` needs uid 1000; the repo stays owned by root. `config.yaml` and
-  other tracked files are mode 644 — readable by the container user as-is.
+  Only the two writable surfaces need uid 1000 — `.env` and `drops/` — and you
+  chown them individually (never the repo root). The rest of the repo stays
+  owned by root; `config.yaml` and other tracked files are mode 644, readable
+  by the container user as-is. (Symptom of a missed `drops/` chown: the weekly
+  run renders the draft fine but crashes at the end with `PermissionError`
+  moving the flyer into `drops/_archive/`.)
 - **Never set `WUM_UID`/`WUM_GID` to 0.** The image defaults them to 1000
   (see `docker-compose.yml`), which matches the `.env` owner above, so you
   don't touch them at all. The build deliberately *refuses* uid/gid 0 —
