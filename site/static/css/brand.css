@@ -58,6 +58,20 @@ h1, h2, h3, .label, nav, .btn { font-family: 'Montserrat', sans-serif; }
 }
 .hero h1 em { color: var(--gold); font-style: normal; }
 .hero .sub { color: rgba(255,255,255,0.72); max-width: 640px; }
+.refresh-note {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-top: 22px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: rgba(255,255,255,0.85);
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  padding: 8px 16px; border-radius: 999px;
+}
+.refresh-note .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--gold); flex-shrink: 0;
+}
 
 /* --- Best store banner --- */
 .best {
