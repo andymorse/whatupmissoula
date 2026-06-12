@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+#
+# wum-drop — upload manual flyer(s) to the What's Up Missoula VPS drop folder.
+#
+# Stores with no scrapeable feed (Albertsons, etc.) get their weekly ad dropped
+# into /srv/wum/drops/<Store>/ on the VPS. The next pipeline run merges those
+# flyers in and archives them into drops/_archive/.
+#
+# Auth: your SSH key lives in 1Password and is served by the 1Password SSH
+# agent, so this script holds no secrets and never touches a key file. The VPS
+# address is read from 1Password via the `op` CLI, so it isn't hardcoded either.
+#
+# Usage:
+#   wum-drop <Store> <file> [file...]
+#
+# Examples:
+#   wum-drop Albertsons ~/Downloads/albertsons-weekly.pdf
+#   wum-drop "Super 1" page1.jpg page2.jpg
+#
+# Setup (one time):
+#   1. Enable the 1Password SSH agent (Settings → Developer) and make sure
+#      `ssh root@<vps>` works unattended.
+#   2. Store the VPS target in 1Password as a field whose value is
+#      "root@<vps-ip-or-host>", and point OP_HOST_REF (below) at it. Or skip
+#      1Password entirely and export WUM_SSH=root@<host>.
+#
+set -euo pipefail
+
+# --- config -----------------------------------------------------------------
+# Explicit target wins. Otherwise the host is read from 1Password via `op read`.
+WUM_SSH="${WUM_SSH:-}"
+OP_HOST_REF="${WUM_OP_HOST_REF:-op://Private/WUM VPS/url}"   # value must be user@host
+REMOTE_BASE="/srv/wum/drops"
+DROP_UID=1000   # the in-container pipeline user; the drops tree must be owned by it
+# ----------------------------------------------------------------------------
+
+prog=${0##*/}
+die() { printf '%s: %s\n' "$prog" "$*" >&2; exit 1; }
+
+case "${1:-}" in
+  -h|--help|"")
+    # Print the leading comment block (skip the shebang), stop at the first
+    # non-comment line so the help never drifts when the code below changes.
+    awk 'NR==1{next} /^#/{sub(/^# ?/,""); print; next} {exit}' "$0"
+    exit 0
+    ;;
+esac
+
+[ "$#" -ge 2 ] || die "usage: $prog <Store> <file> [file...]   (try --help)"
+
+store=$1; shift
+
+# Resolve the SSH target: explicit env wins, else ask 1Password.
+if [ -z "$WUM_SSH" ]; then
+  command -v op >/dev/null 2>&1 || die "1Password CLI (op) not found, and WUM_SSH is unset"
+  WUM_SSH=$(op read "$OP_HOST_REF" 2>/dev/null) \
+    || die "couldn't read VPS host from 1Password ($OP_HOST_REF) — signed in? try 'op signin'"
+fi
+[ -n "$WUM_SSH" ] || die "empty SSH target"
+
+# Validate every file before we touch the network.
+for f in "$@"; do
+  [ -e "$f" ] || die "no such file: $f"
+  [ -f "$f" ] || die "not a regular file: $f"
+done
+
+dest="$REMOTE_BASE/$store"
+
+printf '→ %s: uploading %d file(s) to %s:%s/\n' "$prog" "$#" "$WUM_SSH" "$dest"
+
+# Ensure the store folder exists. New subdirs are created root-owned, so hand
+# the whole store dir to the pipeline user up front — otherwise the weekly
+# archive step (which *moves* files out of here) hits PermissionError.
+ssh "$WUM_SSH" "mkdir -p '$dest' && chown ${DROP_UID}:${DROP_UID} '$dest'"
+
+# Upload. scp lands files root-owned (we SSH as root)...
+scp -- "$@" "$WUM_SSH:$dest/"
+
+# ...so re-own the freshly uploaded files to the pipeline user to match the rest
+# of the drops tree. (Moving a file only needs write on the dir, but keeping
+# ownership uniform avoids surprises if the archive logic ever copies instead.)
+ssh "$WUM_SSH" "chown -R ${DROP_UID}:${DROP_UID} '$dest'"
+
+printf '✓ Done. %s/ now contains:\n' "$dest"
+ssh "$WUM_SSH" "ls -lh '$dest'"

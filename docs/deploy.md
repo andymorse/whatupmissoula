@@ -233,5 +233,11 @@ The pipeline output is rebuildable from the mailbox + AI on demand.
   in-memory, no disk growth.
 - **Headless Chromium in containers:** pipeline/web_flyer.py already passes
   `--no-sandbox`, which is required when not running with user namespacing.
-- **Manual flyer drop:** `docker compose run --rm -v ~/flyers:/flyers
-  pipeline python run.py --images /flyers --store "Costco"`.
+- **Manual flyer drop (one-shot, on the VPS):** `docker compose run --rm
+  -v ~/flyers:/flyers pipeline python run.py --images /flyers --store "Costco"`.
+- **Manual flyer drop (from your laptop):** `scripts/wum-drop <Store> <file…>`
+  scp's a flyer into `/srv/wum/drops/<Store>/` for the next run to merge. It
+  authenticates through the 1Password SSH agent, reads the VPS host from the
+  `op` CLI (no hardcoded IP), and chowns the store folder to uid 1000 so the
+  archive step doesn't hit the `drops/` PermissionError. See the header of
+  `scripts/wum-drop` (or `wum-drop --help`) for one-time setup.
