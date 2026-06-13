@@ -46,6 +46,10 @@ hold. Link to an issue or a doc if there's more detail.
 - [ ] **Price history** — track item prices over time to show value trends and
   spot whether a "deal" is actually a good price.
 - [ ] **Blog section** — the reserved Hugo section for longer writeups.
+- [ ] **Local sports scores page** — embed [ScoreStream](https://scorestream.com)
+  widgets on a dedicated page for live/updated scores of Missoula-area teams
+  (preps + college); first step toward broadening past grocery into local
+  content.
 
 ---
 
