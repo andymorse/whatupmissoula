@@ -29,6 +29,7 @@ HERE = Path(__file__).resolve().parent
 SITE = HERE.parent / "site"
 TEMPLATES = SITE / "templates"
 STATIC = SITE / "static"
+ROOT_ASSETS = SITE / "root"  # files served from the site root (favicons, manifest)
 
 
 TOP_STEALS_TARGET = 12  # page shows Top Steals in a 4-up grid; 12 = 3 full rows
@@ -103,6 +104,13 @@ def render(report: WeeklyReport, out_dir: str | Path) -> Path:
     if dest_static.exists():
         shutil.rmtree(dest_static)
     shutil.copytree(STATIC, dest_static)
+
+    # Copy root-served assets (favicons, webmanifest) to the output root so
+    # browsers find /favicon.ico, /apple-touch-icon.png, /site.webmanifest, etc.
+    if ROOT_ASSETS.is_dir():
+        for asset in ROOT_ASSETS.iterdir():
+            if asset.is_file():
+                shutil.copy2(asset, out / asset.name)
 
     # Keep the machine-readable report alongside the page (handy + future API).
     (out / "report.json").write_text(
