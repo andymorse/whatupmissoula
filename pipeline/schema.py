@@ -6,8 +6,18 @@ works with typed objects instead of loose dicts.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field, asdict, fields
 from typing import Optional
+
+
+def _known(cls, d: dict) -> dict:
+    """Keep only keys that are real fields of dataclass ``cls``.
+
+    The model occasionally emits extra keys (e.g. an internal scratch field
+    like ``note_internal``). Dropping unknowns here keeps one stray key from
+    crashing the whole weekly run."""
+    allowed = {f.name for f in fields(cls)}
+    return {k: v for k, v in d.items() if k in allowed}
 
 
 CATEGORIES = {
@@ -86,15 +96,15 @@ class WeeklyReport:
         return cls(
             week_of=d["week_of"],
             generated_note=d.get("generated_note", ""),
-            best_store=BestStore(**best) if best else None,
-            top_steals=[TopSteal(**t) for t in d.get("top_steals", [])],
+            best_store=BestStore(**_known(BestStore, best)) if best else None,
+            top_steals=[TopSteal(**_known(TopSteal, t)) for t in d.get("top_steals", [])],
             stores=[
                 StoreWeek(
                     name=s["name"],
                     in_scope=s.get("in_scope", True),
                     valid_from=s.get("valid_from"),
                     valid_through=s.get("valid_through"),
-                    deals=[Deal(**deal) for deal in s.get("deals", [])],
+                    deals=[Deal(**_known(Deal, deal)) for deal in s.get("deals", [])],
                     kind=s.get("kind"),
                 )
                 for s in d.get("stores", [])
