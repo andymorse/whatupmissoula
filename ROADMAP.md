@@ -50,6 +50,7 @@ hold. Link to an issue or a doc if there's more detail.
   widgets on a dedicated page for live/updated scores of Missoula-area teams
   (preps + college); first step toward broadening past grocery into local
   content.
+- [ ] **Build in intellegent search** — embed
 
 ---
 
