@@ -25,6 +25,21 @@
       <button type="button" id="event-search-clear" class="dealsearch-clear" aria-label="Clear search" hidden>&times;</button>
     </div>
     <p class="dealsearch-status" id="event-search-status" role="status" aria-live="polite" hidden></p>
+    {# distinct tags across this week's events → clickable filter chips #}
+    {% set ns = namespace(tags=[]) %}
+    {% for e in report.events %}{% for t in e.tags %}{% if t not in ns.tags %}{% set ns.tags = ns.tags + [t] %}{% endif %}{% endfor %}{% endfor %}
+    {% if ns.tags %}
+    {% set labelmap = {'kid-friendly': 'Kids', 'special-event': 'Special Event'} %}
+    <div class="tagbar" id="event-tagbar" hidden>
+      <span class="tagbar-label">Filter</span>
+      {% for t in ['kid-friendly', 'special-event'] if t in ns.tags %}
+      <button type="button" class="tagchip tagchip-{{ 'kid' if t == 'kid-friendly' else 'special' }}" data-q="{{ t }}">{{ labelmap[t] }}</button>
+      {% endfor %}
+      {% for t in ns.tags if t not in ['kid-friendly', 'special-event'] %}
+      <button type="button" class="tagchip" data-q="{{ t }}">{{ t }}</button>
+      {% endfor %}
+    </div>
+    {% endif %}
   </div>
 </header>
 
@@ -54,9 +69,9 @@
         <div class="event-body">
           {% if kid or special or e.tags %}
           <div class="event-badges">
-            {% if kid %}<span class="ev-tag kid">Kids</span>{% endif %}
-            {% if special %}<span class="ev-tag special">Special Event</span>{% endif %}
-            {% for t in e.tags if t not in ['kid-friendly', 'special-event'] %}<span class="ev-tag plain">{{ t }}</span>{% endfor %}
+            {% if kid %}<span class="ev-tag kid" data-q="kid-friendly" title="Filter to kids events">Kids</span>{% endif %}
+            {% if special %}<span class="ev-tag special" data-q="special-event" title="Filter to special events">Special Event</span>{% endif %}
+            {% for t in e.tags if t not in ['kid-friendly', 'special-event'] %}<span class="ev-tag plain" data-q="{{ t }}" title="Filter to {{ t }}">{{ t }}</span>{% endfor %}
           </div>
           {% endif %}
           <h3 class="event-title">{% if e.url %}<a href="{{ e.url }}" target="_blank" rel="noopener">{{ e.title }}</a>{% else %}{{ e.title }}{% endif %}</h3>
@@ -82,14 +97,18 @@
 
 <script>
 (function () {
-  var input = document.getElementById('event-search');
+  var input  = document.getElementById('event-search');
   if (!input) return;
   var wrap   = input.closest('.dealsearch');
   var clear  = document.getElementById('event-search-clear');
   var status = document.getElementById('event-search-status');
+  var tagbar = document.getElementById('event-tagbar');
   var cards  = [].slice.call(document.querySelectorAll('.event'));
+  var chips  = tagbar ? [].slice.call(tagbar.querySelectorAll('.tagchip')) : [];
 
+  // Search + filter chips are JS-only — reveal them now that they work.
   if (wrap) wrap.hidden = false;
+  if (tagbar) tagbar.hidden = false;
   cards.forEach(function (c) {
     c._hay = (c.getAttribute('data-search') || c.textContent || '').toLowerCase();
   });
@@ -98,6 +117,12 @@
     var raw = input.value.trim();
     var q = raw.toLowerCase();
     clear.hidden = raw === '';
+    // Light up whichever chip matches the active query.
+    chips.forEach(function (chip) {
+      chip.classList.toggle('active',
+        q !== '' && chip.getAttribute('data-q').toLowerCase() === q);
+    });
+
     if (!q) {
       cards.forEach(function (c) { c.hidden = false; });
       status.hidden = true;
@@ -115,11 +140,25 @@
       : hits + (hits === 1 ? ' event' : ' events') + ' match “' + raw + '”.';
   }
 
-  input.addEventListener('input', apply);
-  clear.addEventListener('click', function () {
-    input.value = '';
+  function setQuery(q) {
+    // Clicking the already-active tag clears it (toggle off).
+    input.value = (input.value.trim().toLowerCase() === q.toLowerCase()) ? '' : q;
     apply();
-    input.focus();
+  }
+
+  input.addEventListener('input', apply);
+  clear.addEventListener('click', function () { input.value = ''; apply(); input.focus(); });
+
+  // Clickable filter chips and on-card tag badges (anything with data-q).
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest('[data-q]');
+    if (!el) return;
+    e.preventDefault();
+    setQuery(el.getAttribute('data-q'));
+    // If triggered from a badge deep in the list, scroll the search into view.
+    if (el.closest('.event') && wrap) {
+      wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   });
 })();
 </script>
