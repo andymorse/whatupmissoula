@@ -14,14 +14,14 @@
       </nav>
     </div>
     <span class="label">Missoula events · Week of {{ report.week_of }}</span>
-    <h1>This weekend in <em>Missoula</em>.</h1>
-    {% if report.weekend_pick %}<p class="sub">{{ report.weekend_pick }}</p>{% endif %}
+    <h1>This week in <em>Missoula</em>.</h1>
+    {% if report.week_pick %}<p class="sub">{{ report.week_pick }}</p>{% endif %}
     <p class="refresh-note"><span class="dot"></span>Refreshed every Wednesday</p>
     <div class="dealsearch" hidden>
       <svg class="dealsearch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
       <input type="search" id="event-search" class="dealsearch-input" autocomplete="off"
              placeholder="Search events — try &ldquo;kids&rdquo; or &ldquo;special&rdquo;"
-             aria-label="Search this weekend's events">
+             aria-label="Search this week's events">
       <button type="button" id="event-search-clear" class="dealsearch-clear" aria-label="Clear search" hidden>&times;</button>
     </div>
     <p class="dealsearch-status" id="event-search-status" role="status" aria-live="polite" hidden></p>
@@ -41,7 +41,7 @@
 
 <section class="section">
   <div class="container">
-    <span class="label">This weekend</span>
+    <span class="label">This week</span>
     <h2>At The Roxy Theater</h2>
     <p class="order-note">Locally programmed at Missoula's nonprofit community cinema. Search &ldquo;kids&rdquo; for family-friendly screenings, or &ldquo;special&rdquo; for one-off events.</p>
     {% if report.events %}
@@ -64,8 +64,9 @@
           {% if e.series %}<div class="event-series">{{ e.series }}</div>{% endif %}
           {% if e.showtimes %}
           <div class="event-times">
-            {% for day, group in e.showtimes|groupby('day') %}
-            <div><span class="day">{{ day }}</span> — {{ group|map(attribute='time')|join(' · ') }}</div>
+            {# group by ISO date so a full Wed→Tue week stays in chronological order #}
+            {% for d, group in e.showtimes|groupby('date') %}
+            <div><span class="day">{{ (group|first).day }}</span> — {{ group|map(attribute='time')|join(' · ') }}</div>
             {% endfor %}
           </div>
           {% endif %}
@@ -74,7 +75,7 @@
       {% endfor %}
     </div>
     {% else %}
-    <p class="order-note" style="margin-top:16px">No screenings listed for this weekend yet — check back Wednesday.</p>
+    <p class="order-note" style="margin-top:16px">No screenings listed for this week yet — check back Wednesday.</p>
     {% endif %}
   </div>
 </section>

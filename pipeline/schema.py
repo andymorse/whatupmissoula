@@ -115,10 +115,10 @@ class WeeklyReport:
     best_store: Optional[BestStore] = None
     top_steals: list[TopSteal] = field(default_factory=list)
     stores: list[StoreWeek] = field(default_factory=list)
-    # Events page (refreshed alongside deals). weekend_pick is a short editorial
+    # Events page (refreshed alongside deals). week_pick is a short editorial
     # recommendation shown at the top of the events page.
     events: list[Event] = field(default_factory=list)
-    weekend_pick: str = ""
+    week_pick: str = ""
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -150,5 +150,5 @@ class WeeklyReport:
                 )
                 for e in d.get("events", [])
             ],
-            weekend_pick=d.get("weekend_pick", ""),
+            week_pick=d.get("week_pick", ""),
         )
