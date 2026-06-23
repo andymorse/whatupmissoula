@@ -25,18 +25,16 @@
       <button type="button" id="event-search-clear" class="dealsearch-clear" aria-label="Clear search" hidden>&times;</button>
     </div>
     <p class="dealsearch-status" id="event-search-status" role="status" aria-live="polite" hidden></p>
-    {# distinct tags across this week's events → clickable filter chips #}
+    {# Headline filter chips only (Kids / Special Event) to keep the bar tidy —
+       format tags like Subtitled/Annex stay clickable on the cards themselves. #}
     {% set ns = namespace(tags=[]) %}
     {% for e in report.events %}{% for t in e.tags %}{% if t not in ns.tags %}{% set ns.tags = ns.tags + [t] %}{% endif %}{% endfor %}{% endfor %}
-    {% if ns.tags %}
     {% set labelmap = {'kid-friendly': 'Kids', 'special-event': 'Special Event'} %}
+    {% if 'kid-friendly' in ns.tags or 'special-event' in ns.tags %}
     <div class="tagbar" id="event-tagbar" hidden>
       <span class="tagbar-label">Filter</span>
       {% for t in ['kid-friendly', 'special-event'] if t in ns.tags %}
       <button type="button" class="tagchip tagchip-{{ 'kid' if t == 'kid-friendly' else 'special' }}" data-q="{{ t }}">{{ labelmap[t] }}</button>
-      {% endfor %}
-      {% for t in ns.tags if t not in ['kid-friendly', 'special-event'] %}
-      <button type="button" class="tagchip" data-q="{{ t }}">{{ t }}</button>
       {% endfor %}
     </div>
     {% endif %}
