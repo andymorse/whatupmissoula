@@ -99,6 +99,13 @@ def render(report: WeeklyReport, out_dir: str | Path) -> Path:
     html = env.get_template("index.html.j2").render(report=report, store_dates=store_dates)
     (out / "index.html").write_text(html, encoding="utf-8")
 
+    # Events page → /events/index.html (served at /events/). Same report, same
+    # shared assets (absolute /static paths work from the subdir).
+    events_html = env.get_template("events.html.j2").render(report=report)
+    events_dir = out / "events"
+    events_dir.mkdir(parents=True, exist_ok=True)
+    (events_dir / "index.html").write_text(events_html, encoding="utf-8")
+
     # Copy static assets (css, images) into the output tree.
     dest_static = out / "static"
     if dest_static.exists():

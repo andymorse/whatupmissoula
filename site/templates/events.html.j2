@@ -1,0 +1,125 @@
+{% extends "base.html.j2" %}
+{% block title %}What's Up Missoula — Missoula Events, Week of {{ report.week_of }}{% endblock %}
+{% block body %}
+<header class="hero">
+  <div class="container">
+    <div class="topbar">
+      <div class="brand">
+        <img src="/static/img/mark.png" alt="What's Up Missoula" onerror="this.style.display='none'">
+        <span>What's Up Missoula</span>
+      </div>
+      <nav class="sitenav">
+        <a href="/">Deals</a>
+        <a href="/events/" class="active">Events</a>
+      </nav>
+    </div>
+    <span class="label">Missoula events · Week of {{ report.week_of }}</span>
+    <h1>This weekend in <em>Missoula</em>.</h1>
+    {% if report.weekend_pick %}<p class="sub">{{ report.weekend_pick }}</p>{% endif %}
+    <p class="refresh-note"><span class="dot"></span>Refreshed every Wednesday</p>
+    <div class="dealsearch" hidden>
+      <svg class="dealsearch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <input type="search" id="event-search" class="dealsearch-input" autocomplete="off"
+             placeholder="Search events — try &ldquo;kids&rdquo; or &ldquo;special&rdquo;"
+             aria-label="Search this weekend's events">
+      <button type="button" id="event-search-clear" class="dealsearch-clear" aria-label="Clear search" hidden>&times;</button>
+    </div>
+    <p class="dealsearch-status" id="event-search-status" role="status" aria-live="polite" hidden></p>
+  </div>
+</header>
+
+{% if report.best_store %}
+<div class="container">
+  <div class="best">
+    <span class="label">Best grocery store this week</span>
+    <h2>{{ report.best_store.name }}</h2>
+    <p>{{ report.best_store.reason }}</p>
+    <p class="best-link"><a href="/">See all of this week's deals →</a></p>
+  </div>
+</div>
+{% endif %}
+
+<section class="section">
+  <div class="container">
+    <span class="label">This weekend</span>
+    <h2>At The Roxy Theater</h2>
+    <p class="order-note">Locally programmed at Missoula's nonprofit community cinema. Search &ldquo;kids&rdquo; for family-friendly screenings, or &ldquo;special&rdquo; for one-off events.</p>
+    {% if report.events %}
+    <div class="events" style="margin-top:24px">
+      {% for e in report.events %}
+      {% set kid = 'kid-friendly' in e.tags %}
+      {% set special = 'special-event' in e.tags %}
+      <div class="event" data-search="{{ (e.title ~ ' ' ~ (e.series or '') ~ ' ' ~ (e.tags|join(' ')) ~ ' ' ~ e.venue ~ (' kids family family-friendly' if kid else '') ~ (' festival' if special else ''))|e }}">
+        {% if e.image %}<img class="event-img" src="{{ e.image }}" alt="{{ e.title }}" loading="lazy" onerror="this.style.display='none'">{% endif %}
+        <div class="event-body">
+          {% if kid or special or e.tags %}
+          <div class="event-badges">
+            {% if kid %}<span class="ev-tag kid">Kids</span>{% endif %}
+            {% if special %}<span class="ev-tag special">Special Event</span>{% endif %}
+            {% for t in e.tags if t not in ['kid-friendly', 'special-event'] %}<span class="ev-tag plain">{{ t }}</span>{% endfor %}
+          </div>
+          {% endif %}
+          <h3 class="event-title">{% if e.url %}<a href="{{ e.url }}" target="_blank" rel="noopener">{{ e.title }}</a>{% else %}{{ e.title }}{% endif %}</h3>
+          <div class="event-meta">{{ e.venue }}{% if e.runtime_min %} · {{ e.runtime_min }} min{% endif %}</div>
+          {% if e.series %}<div class="event-series">{{ e.series }}</div>{% endif %}
+          {% if e.showtimes %}
+          <div class="event-times">
+            {% for day, group in e.showtimes|groupby('day') %}
+            <div><span class="day">{{ day }}</span> — {{ group|map(attribute='time')|join(' · ') }}</div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="order-note" style="margin-top:16px">No screenings listed for this weekend yet — check back Wednesday.</p>
+    {% endif %}
+  </div>
+</section>
+
+<script>
+(function () {
+  var input = document.getElementById('event-search');
+  if (!input) return;
+  var wrap   = input.closest('.dealsearch');
+  var clear  = document.getElementById('event-search-clear');
+  var status = document.getElementById('event-search-status');
+  var cards  = [].slice.call(document.querySelectorAll('.event'));
+
+  if (wrap) wrap.hidden = false;
+  cards.forEach(function (c) {
+    c._hay = (c.getAttribute('data-search') || c.textContent || '').toLowerCase();
+  });
+
+  function apply() {
+    var raw = input.value.trim();
+    var q = raw.toLowerCase();
+    clear.hidden = raw === '';
+    if (!q) {
+      cards.forEach(function (c) { c.hidden = false; });
+      status.hidden = true;
+      return;
+    }
+    var hits = 0;
+    cards.forEach(function (c) {
+      var hit = c._hay.indexOf(q) !== -1;
+      c.hidden = !hit;
+      if (hit) hits++;
+    });
+    status.hidden = false;
+    status.textContent = hits === 0
+      ? 'No events match “' + raw + '”.'
+      : hits + (hits === 1 ? ' event' : ' events') + ' match “' + raw + '”.';
+  }
+
+  input.addEventListener('input', apply);
+  clear.addEventListener('click', function () {
+    input.value = '';
+    apply();
+    input.focus();
+  });
+})();
+</script>
+{% endblock %}
