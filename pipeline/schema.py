@@ -80,12 +80,45 @@ class TopSteal:
 
 
 @dataclass
+class Showtime:
+    """One screening: a date + clock time. Mirrors the Roxy feed's per-event row."""
+    date: str                               # ISO date, e.g. "2026-06-26"
+    day: str = ""                           # short weekday label, e.g. "Fri"
+    time: str = ""                          # display time, e.g. "2:00p"
+    event_id: Optional[int] = None          # Roxy/Agile event id (ticket link key)
+
+
+@dataclass
+class Event:
+    """A local event for the events page — v1 is Roxy Theater showtimes.
+
+    `tags` are free-form labels (e.g. "kid-friendly", "special-event",
+    "subtitled") that render as badges AND feed the on-page search. Some are
+    deterministic from the source feed; others (kid-friendly / special-event)
+    are AI-assigned, then human-reviewed before publish.
+    """
+    title: str
+    venue: str = "The Roxy Theater"
+    url: Optional[str] = None
+    image: Optional[str] = None
+    series: Optional[str] = None            # Roxy programming series, e.g. "New Release"
+    runtime_min: Optional[int] = None
+    showtimes: list[Showtime] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)
+    note: Optional[str] = None             # short blurb (AI or synopsis)
+
+
+@dataclass
 class WeeklyReport:
     week_of: str                            # ISO date (Monday)
     generated_note: str = ""
     best_store: Optional[BestStore] = None
     top_steals: list[TopSteal] = field(default_factory=list)
     stores: list[StoreWeek] = field(default_factory=list)
+    # Events page (refreshed alongside deals). weekend_pick is a short editorial
+    # recommendation shown at the top of the events page.
+    events: list[Event] = field(default_factory=list)
+    weekend_pick: str = ""
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -109,4 +142,13 @@ class WeeklyReport:
                 )
                 for s in d.get("stores", [])
             ],
+            events=[
+                Event(
+                    **{**_known(Event, e),
+                       "showtimes": [Showtime(**_known(Showtime, st))
+                                     for st in e.get("showtimes", [])]}
+                )
+                for e in d.get("events", [])
+            ],
+            weekend_pick=d.get("weekend_pick", ""),
         )

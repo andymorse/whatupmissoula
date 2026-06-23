@@ -173,6 +173,19 @@ def main() -> int:
             except Exception as e:
                 print(f"  ! CHEF'STORE fetch failed ({e}) — skipping", file=sys.stderr)
 
+    # Events page: this weekend's local lineup (Roxy Theater v1), AI-tagged for
+    # kid-friendly / special events. Network + AI, so skip offline/test paths.
+    if not (args.sample or args.url or args.images):
+        try:
+            from roxy_fetch import fetch_roxy_events
+            from events_enrich import enrich_events
+            print("  • The Roxy: fetching weekend lineup…")
+            report.events = fetch_roxy_events(week_of)
+            report.weekend_pick = enrich_events(report.events, week_of)
+            print(f"    → {len(report.events)} film(s) this weekend")
+        except Exception as e:                     # events are additive, never fatal
+            print(f"  ! Roxy events fetch failed ({e}) — skipping", file=sys.stderr)
+
     path = render(report, draft_dir)
     print(f"Draft rendered → {path}")
     if drop_files:
