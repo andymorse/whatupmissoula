@@ -126,6 +126,297 @@
   ],
   "events": [
     {
+      "title": "Leviticus",
+      "venue": "The Roxy Theater",
+      "url": "https://www.theroxytheater.org/show/leviticus/",
+      "image": "https://i0.wp.com/www.theroxytheater.org/wp-content/uploads/2026/05/leviticus.jpg?fit=1024%2C576&ssl=1",
+      "series": "New Release",
+      "runtime_min": 88,
+      "showtimes": [
+        {
+          "date": "2026-06-24",
+          "day": "Wed",
+          "time": "4:45 PM",
+          "event_id": 21541
+        },
+        {
+          "date": "2026-06-25",
+          "day": "Thu",
+          "time": "7:45 PM",
+          "event_id": 21542
+        },
+        {
+          "date": "2026-06-26",
+          "day": "Fri",
+          "time": "5:45 PM",
+          "event_id": 21693
+        },
+        {
+          "date": "2026-06-27",
+          "day": "Sat",
+          "time": "5:45 PM",
+          "event_id": 21694
+        },
+        {
+          "date": "2026-06-28",
+          "day": "Sun",
+          "time": "8:00 PM",
+          "event_id": 21695
+        },
+        {
+          "date": "2026-06-29",
+          "day": "Mon",
+          "time": "8:15 PM",
+          "event_id": 21696
+        }
+      ],
+      "tags": [],
+      "note": null
+    },
+    {
+      "title": "Cries and Whispers",
+      "venue": "The Roxy Theater",
+      "url": "https://www.theroxytheater.org/show/cries-and-whispers/",
+      "image": "https://i0.wp.com/www.theroxytheater.org/wp-content/uploads/2026/05/cries20and20whispers.jpg?fit=1024%2C577&ssl=1",
+      "series": "Bleak Week: Cinema of Despair",
+      "runtime_min": 90,
+      "showtimes": [
+        {
+          "date": "2026-06-24",
+          "day": "Wed",
+          "time": "5:00 PM",
+          "event_id": 21507
+        },
+        {
+          "date": "2026-06-24",
+          "day": "Wed",
+          "time": "7:00 PM",
+          "event_id": 21043
+        }
+      ],
+      "tags": [
+        "Subtitled"
+      ],
+      "note": null
+    },
+    {
+      "title": "Disclosure Day",
+      "venue": "The Roxy Theater",
+      "url": "https://www.theroxytheater.org/show/disclosure-day/",
+      "image": "https://i0.wp.com/www.theroxytheater.org/wp-content/uploads/2026/06/dis20day.jpg?fit=1024%2C576&ssl=1",
+      "series": "New Release",
+      "runtime_min": 145,
+      "showtimes": [
+        {
+          "date": "2026-06-24",
+          "day": "Wed",
+          "time": "5:15 PM",
+          "event_id": 21523
+        },
+        {
+          "date": "2026-06-24",
+          "day": "Wed",
+          "time": "8:15 PM",
+          "event_id": 21524
+        },
+        {
+          "date": "2026-06-25",
+          "day": "Thu",
+          "time": "5:00 PM",
+          "event_id": 21525
+        },
+        {
+          "date": "2026-06-25",
+          "day": "Thu",
+          "time": "8:00 PM",
+          "event_id": 21526
+        },
+        {
+          "date": "2026-06-26",
+          "day": "Fri",
+          "time": "2:15 PM",
+          "event_id": 21656
+        },
+        {
+          "date": "2026-06-26",
+          "day": "Fri",
+          "time": "5:15 PM",
+          "event_id": 21657
+        },
+        {
+          "date": "2026-06-26",
+          "day": "Fri",
+          "time": "8:15 PM",
+          "event_id": 21658
+        },
+        {
+          "date": "2026-06-27",
+          "day": "Sat",
+          "time": "2:15 PM",
+          "event_id": 21659
+        },
+        {
+          "date": "2026-06-27",
+          "day": "Sat",
+          "time": "5:15 PM",
+          "event_id": 21660
+        },
+        {
+          "date": "2026-06-27",
+          "day": "Sat",
+          "time": "8:15 PM",
+          "event_id": 21661
+        },
+        {
+          "date": "2026-06-28",
+          "day": "Sun",
+          "time": "1:45 PM",
+          "event_id": 21662
+        },
+        {
+          "date": "2026-06-28",
+          "day": "Sun",
+          "time": "4:45 PM",
+          "event_id": 21663
+        },
+        {
+          "date": "2026-06-28",
+          "day": "Sun",
+          "time": "7:45 PM",
+          "event_id": 21664
+        },
+        {
+          "date": "2026-06-29",
+          "day": "Mon",
+          "time": "2:00 PM",
+          "event_id": 21665
+        },
+        {
+          "date": "2026-06-29",
+          "day": "Mon",
+          "time": "5:00 PM",
+          "event_id": 21666
+        },
+        {
+          "date": "2026-06-29",
+          "day": "Mon",
+          "time": "8:00 PM",
+          "event_id": 21667
+        }
+      ],
+      "tags": [],
+      "note": null
+    },
+    {
+      "title": "4 Months, 3 Weeks and 2 Days",
+      "venue": "The Roxy Theater",
+      "url": "https://www.theroxytheater.org/show/4-months-3-weeks-and-2-days/",
+      "image": "https://i0.wp.com/www.theroxytheater.org/wp-content/uploads/2026/05/420months.jpeg?fit=1024%2C576&ssl=1",
+      "series": "Bleak Week: Cinema of Despair",
+      "runtime_min": 113,
+      "showtimes": [
+        {
+          "date": "2026-06-25",
+          "day": "Thu",
+          "time": "4:30 PM",
+          "event_id": 21545
+        },
+        {
+          "date": "2026-06-25",
+          "day": "Thu",
+          "time": "7:00 PM",
+          "event_id": 21040
+        }
+      ],
+      "tags": [
+        "Subtitled"
+      ],
+      "note": null
+    },
+    {
+      "title": "Carnival of Souls",
+      "venue": "The Roxy Theater",
+      "url": "https://www.theroxytheater.org/show/carnival-of-souls/",
+      "image": "https://i0.wp.com/www.theroxytheater.org/wp-content/uploads/2026/05/carnivale20of20soles.jpeg?fit=1024%2C577&ssl=1",
+      "series": "Classics of the Annex: Summerween",
+      "runtime_min": 78,
+      "showtimes": [
+        {
+          "date": "2026-06-25",
+          "day": "Thu",
+          "time": "5:15 PM",
+          "event_id": 21258
+        },
+        {
+          "date": "2026-06-25",
+          "day": "Thu",
+          "time": "7:00 PM",
+          "event_id": 21259
+        },
+        {
+          "date": "2026-06-26",
+          "day": "Fri",
+          "time": "5:15 PM",
+          "event_id": 21260
+        },
+        {
+          "date": "2026-06-26",
+          "day": "Fri",
+          "time": "7:00 PM",
+          "event_id": 21261
+        },
+        {
+          "date": "2026-06-27",
+          "day": "Sat",
+          "time": "5:15 PM",
+          "event_id": 21262
+        },
+        {
+          "date": "2026-06-27",
+          "day": "Sat",
+          "time": "7:00 PM",
+          "event_id": 21263
+        },
+        {
+          "date": "2026-06-28",
+          "day": "Sun",
+          "time": "5:15 PM",
+          "event_id": 21264
+        },
+        {
+          "date": "2026-06-28",
+          "day": "Sun",
+          "time": "7:00 PM",
+          "event_id": 21265
+        }
+      ],
+      "tags": [
+        "Annex"
+      ],
+      "note": null
+    },
+    {
+      "title": "Roxy Game Day",
+      "venue": "The Roxy Theater",
+      "url": "https://www.theroxytheater.org/show/roxy-game-day/",
+      "image": "https://i0.wp.com/www.theroxytheater.org/wp-content/uploads/2026/03/roxy-game-day_06-jun_socialv2.jpg?fit=1024%2C572&ssl=1",
+      "series": "Free Event in the Roxy Lounge!",
+      "runtime_min": 180,
+      "showtimes": [
+        {
+          "date": "2026-06-25",
+          "day": "Thu",
+          "time": "6:00 PM",
+          "event_id": 21701
+        }
+      ],
+      "tags": [
+        "special-event",
+        "Annex"
+      ],
+      "note": null
+    },
+    {
       "title": "Girls Like Girls",
       "venue": "The Roxy Theater",
       "url": "https://www.theroxytheater.org/show/girls-like-girls/",
@@ -168,119 +459,42 @@
           "day": "Sat",
           "time": "6:00 PM",
           "event_id": 21681
-        }
-      ],
-      "tags": [
-        "kid-friendly"
-      ],
-      "note": null
-    },
-    {
-      "title": "Disclosure Day",
-      "venue": "The Roxy Theater",
-      "url": "https://www.theroxytheater.org/show/disclosure-day/",
-      "image": "https://i0.wp.com/www.theroxytheater.org/wp-content/uploads/2026/06/dis20day.jpg?fit=1024%2C576&ssl=1",
-      "series": "New Release",
-      "runtime_min": 145,
-      "showtimes": [
-        {
-          "date": "2026-06-26",
-          "day": "Fri",
-          "time": "2:15 PM",
-          "event_id": 21656
         },
         {
-          "date": "2026-06-26",
-          "day": "Fri",
+          "date": "2026-06-28",
+          "day": "Sun",
+          "time": "2:00 PM",
+          "event_id": 21682
+        },
+        {
+          "date": "2026-06-28",
+          "day": "Sun",
+          "time": "4:00 PM",
+          "event_id": 21683
+        },
+        {
+          "date": "2026-06-28",
+          "day": "Sun",
+          "time": "6:00 PM",
+          "event_id": 21684
+        },
+        {
+          "date": "2026-06-29",
+          "day": "Mon",
+          "time": "2:45 PM",
+          "event_id": 21685
+        },
+        {
+          "date": "2026-06-29",
+          "day": "Mon",
           "time": "5:15 PM",
-          "event_id": 21657
+          "event_id": 21686
         },
         {
-          "date": "2026-06-26",
-          "day": "Fri",
-          "time": "8:15 PM",
-          "event_id": 21658
-        },
-        {
-          "date": "2026-06-27",
-          "day": "Sat",
-          "time": "2:15 PM",
-          "event_id": 21659
-        },
-        {
-          "date": "2026-06-27",
-          "day": "Sat",
-          "time": "5:15 PM",
-          "event_id": 21660
-        },
-        {
-          "date": "2026-06-27",
-          "day": "Sat",
-          "time": "8:15 PM",
-          "event_id": 21661
-        }
-      ],
-      "tags": [],
-      "note": null
-    },
-    {
-      "title": "Carnival of Souls",
-      "venue": "The Roxy Theater",
-      "url": "https://www.theroxytheater.org/show/carnival-of-souls/",
-      "image": "https://i0.wp.com/www.theroxytheater.org/wp-content/uploads/2026/05/carnivale20of20soles.jpeg?fit=1024%2C577&ssl=1",
-      "series": "Classics of the Annex: Summerween",
-      "runtime_min": 78,
-      "showtimes": [
-        {
-          "date": "2026-06-26",
-          "day": "Fri",
-          "time": "5:15 PM",
-          "event_id": 21260
-        },
-        {
-          "date": "2026-06-26",
-          "day": "Fri",
-          "time": "7:00 PM",
-          "event_id": 21261
-        },
-        {
-          "date": "2026-06-27",
-          "day": "Sat",
-          "time": "5:15 PM",
-          "event_id": 21262
-        },
-        {
-          "date": "2026-06-27",
-          "day": "Sat",
-          "time": "7:00 PM",
-          "event_id": 21263
-        }
-      ],
-      "tags": [
-        "Annex",
-        "special-event"
-      ],
-      "note": null
-    },
-    {
-      "title": "Leviticus",
-      "venue": "The Roxy Theater",
-      "url": "https://www.theroxytheater.org/show/leviticus/",
-      "image": "https://i0.wp.com/www.theroxytheater.org/wp-content/uploads/2026/05/leviticus.jpg?fit=1024%2C576&ssl=1",
-      "series": "New Release",
-      "runtime_min": 88,
-      "showtimes": [
-        {
-          "date": "2026-06-26",
-          "day": "Fri",
-          "time": "5:45 PM",
-          "event_id": 21693
-        },
-        {
-          "date": "2026-06-27",
-          "day": "Sat",
-          "time": "5:45 PM",
-          "event_id": 21694
+          "date": "2026-06-29",
+          "day": "Mon",
+          "time": "7:30 PM",
+          "event_id": 21687
         }
       ],
       "tags": [],
@@ -311,6 +525,24 @@
           "day": "Sat",
           "time": "7:45 PM",
           "event_id": 21650
+        },
+        {
+          "date": "2026-06-28",
+          "day": "Sun",
+          "time": "5:00 PM",
+          "event_id": 21651
+        },
+        {
+          "date": "2026-06-29",
+          "day": "Mon",
+          "time": "3:00 PM",
+          "event_id": 21652
+        },
+        {
+          "date": "2026-06-29",
+          "day": "Mon",
+          "time": "5:30 PM",
+          "event_id": 21653
         }
       ],
       "tags": [],
@@ -331,9 +563,7 @@
           "event_id": 21061
         }
       ],
-      "tags": [
-        "special-event"
-      ],
+      "tags": [],
       "note": null
     },
     {
@@ -351,11 +581,27 @@
           "event_id": 21049
         }
       ],
-      "tags": [
-        "special-event"
+      "tags": [],
+      "note": null
+    },
+    {
+      "title": "Dogtown and Z-Boys",
+      "venue": "The Roxy Theater",
+      "url": "https://www.theroxytheater.org/show/dogtown-and-z-boys/",
+      "image": "https://i0.wp.com/www.theroxytheater.org/wp-content/uploads/2026/04/dogtown-and-z-boys-1200-1200-675-675-crop-000000.jpg?fit=1024%2C576&ssl=1",
+      "series": "Skate Night Cinema",
+      "runtime_min": 87,
+      "showtimes": [
+        {
+          "date": "2026-06-28",
+          "day": "Sun",
+          "time": "7:30 PM",
+          "event_id": 20790
+        }
       ],
+      "tags": [],
       "note": null
     }
   ],
-  "weekend_pick": "Make it a double feature: catch a matinee at The Roxy, then raid the week's best grocery deals on your way home."
+  "week_pick": "This week leans special: catch a Roxy Jr. matinee with the kids, then a one-off classic after dark."
 }

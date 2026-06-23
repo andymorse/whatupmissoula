@@ -173,16 +173,16 @@ def main() -> int:
             except Exception as e:
                 print(f"  ! CHEF'STORE fetch failed ({e}) — skipping", file=sys.stderr)
 
-    # Events page: this weekend's local lineup (Roxy Theater v1), AI-tagged for
-    # kid-friendly / special events. Network + AI, so skip offline/test paths.
+    # Events page: this week's local lineup (Roxy Theater v1, Wed→Wed), AI-tagged
+    # for kid-friendly / special events. Network + AI, so skip offline/test paths.
     if not (args.sample or args.url or args.images):
         try:
             from roxy_fetch import fetch_roxy_events
             from events_enrich import enrich_events
-            print("  • The Roxy: fetching weekend lineup…")
+            print("  • The Roxy: fetching this week's lineup…")
             report.events = fetch_roxy_events(week_of)
-            report.weekend_pick = enrich_events(report.events, week_of)
-            print(f"    → {len(report.events)} film(s) this weekend")
+            report.week_pick = enrich_events(report.events, week_of)
+            print(f"    → {len(report.events)} film(s) this week")
         except Exception as e:                     # events are additive, never fatal
             print(f"  ! Roxy events fetch failed ({e}) — skipping", file=sys.stderr)
 

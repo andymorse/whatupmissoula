@@ -2,12 +2,13 @@
 
 The Roxy API has no MPAA rating or audience signal, so we ask Claude to flag
 which films are genuinely kid/family-friendly and which are special events
-(festivals, one-off classics, themed series), and to draft a short "weekend
-pick" recommendation. Everything here is reviewed by a human before publish.
+(festivals, guest appearances, one-off classics), and to draft a short "pick
+of the week" recommendation. Everything here is reviewed by a human before
+publish.
 
 Tags are constrained to a small set so the page's badges/search stay tidy.
 Degrades gracefully: no API key (or any error) → events keep their
-deterministic feed tags and weekend_pick is left blank.
+deterministic series/feed tags and week_pick is left blank.
 """
 from __future__ import annotations
 
@@ -20,15 +21,18 @@ from schema import Event
 AI_TAGS = {"kid-friendly", "special-event"}
 
 SYSTEM = (
-    "You curate a Missoula community events page. You will get this weekend's "
-    "films at The Roxy Theater (a nonprofit arthouse cinema). For each film, "
-    "decide which of these tags apply: 'kid-friendly' (genuinely suitable and "
+    "You curate a Missoula community events page. You will get this week's "
+    "films at The Roxy Theater (a nonprofit arthouse cinema). Each film has a "
+    "programming 'series' and any tags already applied. For each film decide "
+    "which of these tags apply: 'kid-friendly' (genuinely suitable and "
     "appealing for children/families — animation, all-ages programming, G/PG-"
-    "level; when unsure, DON'T tag it), and 'special-event' (a festival, one-"
-    "off classic, themed series, or anything beyond a standard new-release "
-    "run — use the film's 'series' as a strong hint). Also write one warm, "
-    "concise 'weekend pick' sentence recommending what to catch. Use your "
-    "general film knowledge. Output ONLY JSON, no prose, no fences."
+    "level; the Roxy's 'Roxy Jr.' series is always kid-friendly; when unsure, "
+    "DON'T tag it), and 'special-event' (a festival, guest appearance, free "
+    "community screening, live show, one-off classic, or anything beyond a "
+    "standard new-release run — use the 'series' as a strong hint). Don't "
+    "remove tags already present; only add. Also write one warm, concise "
+    "'pick of the week' sentence recommending what to catch. Use your general "
+    "film knowledge. Output ONLY JSON, no prose, no fences."
 )
 
 
@@ -42,7 +46,7 @@ def _client_and_model():
 
 
 def enrich_events(events: list[Event], week_of: str) -> str:
-    """Add AI tags to ``events`` in place; return a weekend_pick string ("" if none)."""
+    """Add AI tags to ``events`` in place; return a week_pick string ("" if none)."""
     if not events:
         return ""
     client, model = _client_and_model()
@@ -54,13 +58,13 @@ def enrich_events(events: list[Event], week_of: str) -> str:
             "title": e.title,
             "series": e.series or "",
             "runtime_min": e.runtime_min,
-            "showtimes": [f"{s.day} {s.time}" for s in e.showtimes],
+            "tags": e.tags,
         }
         for e in events
     ]
     user = (
-        f"Weekend of {week_of}. Films:\n{json.dumps(catalog, indent=2)}\n\n"
-        'Return JSON: {"weekend_pick": "<one sentence>", '
+        f"Week of {week_of}. Films:\n{json.dumps(catalog, indent=2)}\n\n"
+        'Return JSON: {"week_pick": "<one sentence>", '
         '"films": [{"title": "<exact title>", "tags": ["kid-friendly"|"special-event"]}]}'
     )
 
@@ -89,4 +93,4 @@ def enrich_events(events: list[Event], week_of: str) -> str:
             if t not in e.tags:
                 e.tags.append(t)
 
-    return (data.get("weekend_pick") or "").strip()
+    return (data.get("week_pick") or "").strip()
