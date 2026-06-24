@@ -5,7 +5,7 @@
   <div class="container">
     <div class="topbar">
       <div class="brand">
-        <img src="/static/img/mark.png" alt="What's Up Missoula" onerror="this.style.display='none'">
+        <img src="/static/img/mark.png" alt="What's Up Missoula">
         <span>What's Up Missoula</span>
       </div>
       <nav class="sitenav">
@@ -63,7 +63,7 @@
       {% set kid = 'kid-friendly' in e.tags %}
       {% set special = 'special-event' in e.tags %}
       <div class="event" data-search="{{ (e.title ~ ' ' ~ (e.series or '') ~ ' ' ~ (e.tags|join(' ')) ~ ' ' ~ e.venue ~ (' kids family family-friendly' if kid else '') ~ (' festival' if special else ''))|e }}">
-        {% if e.image %}<img class="event-img" src="{{ e.image }}" alt="{{ e.title }}" loading="lazy" onerror="this.style.display='none'">{% endif %}
+        {% if e.image %}<img class="event-img" src="{{ e.image }}" alt="{{ e.title }}" loading="lazy">{% endif %}
         <div class="event-body">
           {% if kid or special or e.tags %}
           <div class="event-badges">
@@ -93,71 +93,5 @@
   </div>
 </section>
 
-<script>
-(function () {
-  var input  = document.getElementById('event-search');
-  if (!input) return;
-  var wrap   = input.closest('.dealsearch');
-  var clear  = document.getElementById('event-search-clear');
-  var status = document.getElementById('event-search-status');
-  var tagbar = document.getElementById('event-tagbar');
-  var cards  = [].slice.call(document.querySelectorAll('.event'));
-  var chips  = tagbar ? [].slice.call(tagbar.querySelectorAll('.tagchip')) : [];
-
-  // Search + filter chips are JS-only — reveal them now that they work.
-  if (wrap) wrap.hidden = false;
-  if (tagbar) tagbar.hidden = false;
-  cards.forEach(function (c) {
-    c._hay = (c.getAttribute('data-search') || c.textContent || '').toLowerCase();
-  });
-
-  function apply() {
-    var raw = input.value.trim();
-    var q = raw.toLowerCase();
-    clear.hidden = raw === '';
-    // Light up whichever chip matches the active query.
-    chips.forEach(function (chip) {
-      chip.classList.toggle('active',
-        q !== '' && chip.getAttribute('data-q').toLowerCase() === q);
-    });
-
-    if (!q) {
-      cards.forEach(function (c) { c.hidden = false; });
-      status.hidden = true;
-      return;
-    }
-    var hits = 0;
-    cards.forEach(function (c) {
-      var hit = c._hay.indexOf(q) !== -1;
-      c.hidden = !hit;
-      if (hit) hits++;
-    });
-    status.hidden = false;
-    status.textContent = hits === 0
-      ? 'No events match “' + raw + '”.'
-      : hits + (hits === 1 ? ' event' : ' events') + ' match “' + raw + '”.';
-  }
-
-  function setQuery(q) {
-    // Clicking the already-active tag clears it (toggle off).
-    input.value = (input.value.trim().toLowerCase() === q.toLowerCase()) ? '' : q;
-    apply();
-  }
-
-  input.addEventListener('input', apply);
-  clear.addEventListener('click', function () { input.value = ''; apply(); input.focus(); });
-
-  // Clickable filter chips and on-card tag badges (anything with data-q).
-  document.addEventListener('click', function (e) {
-    var el = e.target.closest('[data-q]');
-    if (!el) return;
-    e.preventDefault();
-    setQuery(el.getAttribute('data-q'));
-    // If triggered from a badge deep in the list, scroll the search into view.
-    if (el.closest('.event') && wrap) {
-      wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  });
-})();
-</script>
+<script src="/static/js/event-search.js" defer></script>
 {% endblock %}
