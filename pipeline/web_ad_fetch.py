@@ -40,6 +40,7 @@ from pathlib import Path
 
 from extract import to_flyer_images_pairs
 from providers.base import FlyerImage
+from url_guard import safe_url
 
 # The ShopHero CDN serves the flyer as AVIF (the signed URL bakes in f=auto and
 # ignores Accept). Importing this registers an AVIF opener with Pillow so the
@@ -186,6 +187,7 @@ def _get(url: str) -> str:
 
 
 def _get_bytes(url: str) -> bytes:
+    safe_url(url)  # block file:// / internal-host SSRF before fetching
     req = urllib.request.Request(
         url, headers={"User-Agent": UA, "Accept-Language": "en-US,en;q=0.9"}
     )

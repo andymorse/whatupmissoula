@@ -18,6 +18,7 @@ from pathlib import Path
 from PIL import Image
 
 from providers.base import FlyerImage
+from url_guard import safe_url
 
 # A normal Chrome UA — the default headless UA is often blocked by bot filters.
 _UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -33,6 +34,7 @@ def render_flyer(url: str, store_hint: str, *, width: int = 1400,
 
 
 def _screenshot(url: str, width: int, wait_ms: int, chromium: str) -> bytes:
+    safe_url(url)  # block file:// / internal-host links before chromium loads them
     with tempfile.TemporaryDirectory() as td:
         out = Path(td) / "shot.png"
         cmd = [

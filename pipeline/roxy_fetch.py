@@ -26,6 +26,7 @@ from datetime import date, datetime, timedelta
 from typing import Optional
 
 from schema import Event, Showtime
+from url_guard import safe_url
 
 BASE = "https://www.theroxytheater.org/wp-json/gecko-theme/v1"
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -65,7 +66,8 @@ def _series_tags(series: Optional[str]) -> list[str]:
 
 
 def _get(path: str) -> dict:
-    req = urllib.request.Request(f"{BASE}/{path}", headers={"User-Agent": UA})
+    url = safe_url(f"{BASE}/{path}")
+    req = urllib.request.Request(url, headers={"User-Agent": UA})
     with urllib.request.urlopen(req, timeout=30) as resp:
         return json.loads(resp.read().decode("utf-8"))
 

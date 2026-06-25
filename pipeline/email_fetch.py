@@ -22,6 +22,7 @@ from email.header import decode_header
 from email.message import Message
 
 from settings import env
+from url_guard import is_http_url
 
 
 @dataclass
@@ -103,7 +104,9 @@ def extract_flyer_link(html: str, ecfg: dict) -> str | None:
     for m in re.finditer(r'<a\b[^>]*href="([^"]+)"[^>]*>(.*?)</a>', html, re.I | re.S):
         url, inner = m.group(1), m.group(2)
         u = url.lower()
-        if u.startswith(("mailto:", "tel:", "#")):
+        # Only ever consider http(s) anchors — never file://, data:, etc. The
+        # selected URL gets fetched/screenshotted downstream (see url_guard).
+        if not is_http_url(url):
             continue
         text = re.sub(r"<[^>]+>", " ", inner)
         text += " " + " ".join(re.findall(r'alt="([^"]*)"', inner, re.I))
