@@ -13,6 +13,7 @@
   var stealsSection = stealsWrap ? stealsWrap.closest('.section') : null;
   var rows          = [].slice.call(document.querySelectorAll('table.deals tbody tr'));
   var storeBlocks   = [].slice.call(document.querySelectorAll('.store-block'));
+  var bestStore     = document.getElementById('best-store');
 
   // Search is JS-only — reveal it now that it can actually work.
   if (wrap) wrap.hidden = false;
@@ -27,6 +28,10 @@
     var raw = input.value.trim();
     var q = raw.toLowerCase();
     clear.hidden = raw === '';
+
+    // Tuck away the "Best store this week" callout while searching — it
+    // competes with the results for attention.
+    if (bestStore) bestStore.hidden = q !== '';
 
     if (!q) {
       steals.forEach(function (s) { s.hidden = false; });
