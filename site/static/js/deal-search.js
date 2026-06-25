@@ -8,7 +8,6 @@
   var clear  = document.getElementById('deal-search-clear');
   var status = document.getElementById('deal-search-status');
 
-  var steals        = [].slice.call(document.querySelectorAll('.steal'));
   var stealsWrap    = document.querySelector('.steals');
   var stealsSection = stealsWrap ? stealsWrap.closest('.section') : null;
   var rows          = [].slice.call(document.querySelectorAll('table.deals tbody tr'));
@@ -21,7 +20,6 @@
   function hay(el) {
     return (el.getAttribute('data-search') || el.textContent || '').toLowerCase();
   }
-  steals.forEach(function (s) { s._hay = hay(s); });
   rows.forEach(function (r) { r._hay = hay(r); });
 
   function apply() {
@@ -29,26 +27,19 @@
     var q = raw.toLowerCase();
     clear.hidden = raw === '';
 
-    // Tuck away the "Best store this week" callout while searching — it
-    // competes with the results for attention.
+    // Hide the curated callouts while searching — the "Best store this week"
+    // banner and the Top Steals / Editor's Picks grid are highlights, not
+    // search results, and they crowd out what you're looking for. Every steal
+    // also appears in its store's table below, so no match is lost.
     if (bestStore) bestStore.hidden = q !== '';
+    if (stealsSection) stealsSection.hidden = q !== '';
 
     if (!q) {
-      steals.forEach(function (s) { s.hidden = false; });
       rows.forEach(function (r) { r.hidden = false; });
       storeBlocks.forEach(function (b) { b.hidden = false; });
-      if (stealsSection) stealsSection.hidden = false;
       status.hidden = true;
       return;
     }
-
-    var stealHits = 0;
-    steals.forEach(function (s) {
-      var hit = s._hay.indexOf(q) !== -1;
-      s.hidden = !hit;
-      if (hit) stealHits++;
-    });
-    if (stealsSection) stealsSection.hidden = stealHits === 0;
 
     var hits = 0;
     rows.forEach(function (r) {
