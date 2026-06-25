@@ -13,6 +13,7 @@
   var rows          = [].slice.call(document.querySelectorAll('table.deals tbody tr'));
   var storeBlocks   = [].slice.call(document.querySelectorAll('.store-block'));
   var bestStore     = document.getElementById('best-store');
+  var byStoreHead   = document.getElementById('bystore-head');
 
   // Search is JS-only — reveal it now that it can actually work.
   if (wrap) wrap.hidden = false;
@@ -33,6 +34,9 @@
     // also appears in its store's table below, so no match is lost.
     if (bestStore) bestStore.hidden = q !== '';
     if (stealsSection) stealsSection.hidden = q !== '';
+    // The "Every deal, by store" heading labels the full list; during a search
+    // the list below it is just the matches, so the heading no longer fits.
+    if (byStoreHead) byStoreHead.hidden = q !== '';
 
     if (!q) {
       rows.forEach(function (r) { r.hidden = false; });

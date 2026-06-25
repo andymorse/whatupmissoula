@@ -77,8 +77,10 @@
 
 <section class="section" style="background:var(--warm-white)">
   <div class="container">
-    <span class="label">Store by store</span>
-    <h2>Every deal, by store</h2>
+    <div id="bystore-head">
+      <span class="label">Store by store</span>
+      <h2>Every deal, by store</h2>
+    </div>
     <div style="margin-top:24px">
       {% for store in report.stores %}
       <div class="store-block{% if store.kind == 'bulk_wholesale' %} store-bulk{% endif %}">
