@@ -28,11 +28,8 @@ hold. Link to an issue or a doc if there's more detail.
 - [ ] **Grocery list builder (phase 2)** — checkbox each deal → grouped
   by-store list with email/export. *(parked 2026-06-06; open question is the
   email mechanism — `mailto:` vs a small backend.)*
-- [ ] **Albertsons deals source** — no scrapeable flyer (store-gated SPA), so
-  bring it in via the email mailbox or manual `--images`.
-- [ ] **Organic tag** — flag deals as organic (data + badge) so it's clear at a
-  glance; surfaces whether any Top Steals are organic. Data groundwork for
-  filtering later.
+- [ ] **1st party ads** — Build pipe line
+- [ ] **SEO** - For Google, Kagi, and AI
 
 ## Later
 *Ideas worth keeping; not committed.*
