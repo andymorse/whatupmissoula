@@ -37,7 +37,11 @@ Edit either list freely — changes here change what the page highlights next ru
   or string cheese — those are different products even though the brand matches.
 - Epic Meat Strips - All kinds or varieties but would like the price to be close to 1.50 per strip.
 - Olipop - Under 1.50 a can all flavors
-- Johnsonville - Beddar Cheddar Smoked Sausage
+- Johnsonville - Cheddar Smoked Sausage
+- Mozzarella cheese - Prefer Tillamook but highlight all brands
+- Dehydrated pineapple
+- Chocolate - Be bround big fan
+- Wheat Montana products
 
 
 ## WUM_picks
@@ -59,3 +63,4 @@ Edit either list freely — changes here change what the page highlights next ru
 - Olive oil
 - Coffee (12 oz bag, whole bean or ground)
 - Ice Cream Any other brands beyond Wilcoxson or Tillamook
+- Cereals
