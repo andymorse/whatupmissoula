@@ -39,7 +39,7 @@ h1, h2, h3, .label, nav, .btn { font-family: 'Montserrat', sans-serif; }
 .hero {
   background: linear-gradient(145deg, #0a1628 0%, #01375f 45%, #025492 100%);
   color: var(--white);
-  padding: 56px 0 64px;
+  padding: 56px 0 40px;
   position: relative;
 }
 .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 40px; }
@@ -127,7 +127,7 @@ h1, h2, h3, .label, nav, .btn { font-family: 'Montserrat', sans-serif; }
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
   padding: 32px 36px;
-  margin: -36px auto 0;
+  margin: -24px auto 0;
   position: relative;
   max-width: 1124px;
   border-left: 6px solid var(--gold);
