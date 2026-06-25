@@ -380,6 +380,15 @@ docker compose run --rm pipeline python run.py --publish
 
 After this, `https://<domain>` serves the rendered site.
 
+**Shipping a UI/template tweak** (no new ad data, no AI tokens): after
+`git pull` + `docker compose build pipeline`, re-render the live data through
+the updated templates, then publish:
+
+```bash
+docker compose run --rm pipeline python run.py --rerender
+docker compose run --rm pipeline python run.py --publish
+```
+
 **8. Add the Monday-morning cron** so you don't have to remember. As `wum`,
 `crontab -e` and add:
 

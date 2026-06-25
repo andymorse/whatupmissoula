@@ -3,10 +3,14 @@
 
   python run.py                 # full run: fetch → extract → analyze → render DRAFT
   python run.py --sample        # render the bundled sample report (no email/API)
+  python run.py --rerender      # rebuild the DRAFT from the live data (no fetch/AI)
   python run.py --publish       # promote the current draft → live web root
 
 Review-before-publish: a normal run only produces a DRAFT. After you eyeball it,
 run with --publish to push it live.
+
+--rerender re-runs the templates over the already-published report.json — for
+shipping UI/template tweaks without re-fetching ads or spending AI tokens.
 """
 from __future__ import annotations
 
@@ -31,6 +35,8 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="What's Up Missoula weekly job")
     ap.add_argument("--sample", action="store_true", help="render bundled sample, no network")
     ap.add_argument("--publish", action="store_true", help="promote draft to live")
+    ap.add_argument("--rerender", action="store_true",
+                    help="rebuild draft from live report.json (no fetch/AI)")
     ap.add_argument("--url", help="render a single web flyer URL (testing)")
     ap.add_argument("--images", help="analyze flyer image(s)/PDF(s) from a file or folder")
     ap.add_argument("--store", default=None,
@@ -47,6 +53,21 @@ def main() -> int:
         from publish import promote
         out = promote(draft_dir, live_dir)
         print(f"Published draft → {out}")
+        return 0
+
+    # Re-render the templates over already-published data — no email fetch, no
+    # AI calls. For shipping UI/template changes without touching the deals.
+    if args.rerender:
+        src = live_dir / "report.json"
+        if not src.exists():
+            src = draft_dir / "report.json"   # fall back to the last draft
+        if not src.exists():
+            print("No report.json to re-render — run a full job first.", file=sys.stderr)
+            return 1
+        report = WeeklyReport.from_dict(json.loads(src.read_text(encoding="utf-8")))
+        path = render(report, draft_dir)
+        print(f"Re-rendered {src} → {path}")
+        print("Review it, then run:  python run.py --publish")
         return 0
 
     week_of = monday_of_this_week()
