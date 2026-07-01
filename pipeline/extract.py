@@ -75,11 +75,23 @@ def to_flyer_images_pairs(pairs: list[tuple[Path, str]], cfg: dict) -> list[Flye
 
 
 def _pdf_pages(path: Path, hint: str, max_pages: int, max_px: int) -> list[FlyerImage]:
-    from pdf2image import convert_from_path  # needs poppler installed on host
+    # Render ONE page at a time. convert_from_path() otherwise rasterizes *every*
+    # page into full-res memory before we slice to max_pages, which OOM-kills the
+    # container (SIGKILL 137) on big multi-page PDFs — e.g. Albertsons' 5.7 MB
+    # flyer. Pulling pages individually caps peak memory to a single page's bitmap.
+    from pdf2image import convert_from_path, pdfinfo_from_path  # needs poppler
+
+    try:
+        n_pages = int(pdfinfo_from_path(str(path)).get("Pages", max_pages))
+    except Exception:
+        n_pages = max_pages
 
     out: list[FlyerImage] = []
-    for pg in convert_from_path(str(path), dpi=150)[:max_pages]:
-        out += _image_to_flyers(pg.convert("RGB"), hint, max_px)
+    for i in range(1, min(n_pages, max_pages) + 1):
+        pages = convert_from_path(str(path), dpi=150, first_page=i, last_page=i)
+        if not pages:
+            break
+        out += _image_to_flyers(pages[0].convert("RGB"), hint, max_px)
     return out
 
 
