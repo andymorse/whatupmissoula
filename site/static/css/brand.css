@@ -48,7 +48,9 @@ h1, h2, h3, .label, nav, .btn { font-family: 'Montserrat', sans-serif; }
   position: relative;
 }
 .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 28px; }
-.topbar .brand { margin-bottom: 0; }
+/* .hero .brand's 40px margin is for the standalone brand; inside the topbar it
+   must lose (three classes beat two — the .hero .brand rule comes later). */
+.hero .topbar .brand { margin-bottom: 0; }
 .sitenav { display: flex; gap: 6px; flex-shrink: 0; }
 .sitenav a {
   font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 700;
@@ -327,8 +329,13 @@ footer p:last-child { margin-bottom: 0; }
   .events { grid-template-columns: 1fr; }
   .bizlist { grid-template-columns: 1fr; }
   .dealsearch { max-width: none; margin-top: 24px; }
-  .topbar { margin-bottom: 28px; }
-  .sitenav a { padding: 7px 13px; }
+  /* Three nav pills no longer fit beside the brand on phones — keep the brand
+     on one line and let the nav wrap onto its own row instead of overflowing. */
+  .topbar { flex-wrap: wrap; margin-bottom: 24px; }
+  .hero .brand { gap: 10px; }
+  .hero .brand img { height: 32px; }
+  .hero .brand span { font-size: 16px; white-space: nowrap; }
+  .sitenav a { padding: 7px 12px; font-size: 12px; }
 }
 
 @media (max-width: 480px) {
