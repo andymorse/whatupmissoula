@@ -184,6 +184,12 @@ git pull
 docker compose build pipeline    # only if pipeline/ changed
 docker compose restart caddy     # only if Caddyfile changed
 ```
+## 8b Code Updates No Ai
+```
+cd /srv/wum && git pull && docker compose build pipeline
+docker compose run --rm pipeline python run.py --rerender
+docker compose run --rm pipeline python run.py --publish
+```
 
 The next cron tick (or a manual `docker compose run --rm pipeline …`) picks
 up new code. Caddy keeps serving the existing site through the update.
