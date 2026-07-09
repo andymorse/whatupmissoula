@@ -1,5 +1,7 @@
 {% extends "base.html.j2" %}
-{% block title %}What's Up Missoula — Best Grocery Deals, Week of {{ report.week_of }}{% endblock %}
+{% block title %}Missoula Grocery Deals This Week — What's Up Missoula{% endblock %}
+{% block description %}The best grocery deals in Missoula for the week of {{ report.week_of }}, compared across {{ report.stores|map(attribute='name')|join(', ') }}. Updated every Wednesday.{% endblock %}
+{% block path %}/{% endblock %}
 {% block body %}
 <header class="hero">
   <div class="container">

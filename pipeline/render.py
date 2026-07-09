@@ -7,13 +7,17 @@ from __future__ import annotations
 
 import json
 import shutil
-from datetime import date as _date
+from datetime import date as _date, datetime as _datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import yaml
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from schema import WeeklyReport
+from settings import env as _env
+
+LOCAL_TZ = ZoneInfo("America/Denver")  # Missoula — JSON-LD event times carry the offset
 
 
 def _pretty_date(iso: str | None) -> str:
@@ -82,6 +86,130 @@ def _curate_order(report: WeeklyReport) -> None:
         store.deals.sort(key=_curate_rank)
 
 
+def _base_url() -> str | None:
+    """Public origin for canonical/OG/sitemap URLs, from WUM_DOMAIN (.env).
+
+    None (e.g. a local preview render) degrades gracefully: pages render
+    without canonical/og:url/og:image tags and no sitemap is written.
+    """
+    domain = (_env("WUM_DOMAIN") or "").strip()
+    return f"https://{domain}" if domain else None
+
+
+def _showtime_iso(st) -> str | None:
+    """Showtime {date: '2026-06-24', time: '4:45 PM'} → ISO 8601 with offset."""
+    try:
+        dt = _datetime.strptime(f"{st.date} {st.time}", "%Y-%m-%d %I:%M %p")
+    except (ValueError, TypeError):
+        return None
+    return dt.replace(tzinfo=LOCAL_TZ).isoformat()
+
+
+def _events_jsonld(report: WeeklyReport) -> dict | None:
+    """schema.org Event list — feeds Google's events rich-result surface."""
+    items = []
+    for e in report.events:
+        start = next((iso for st in e.showtimes if (iso := _showtime_iso(st))), None)
+        if not start:
+            continue
+        ev = {
+            "@type": "Event",
+            "name": e.title,
+            "startDate": start,
+            "eventStatus": "https://schema.org/EventScheduled",
+            "location": {
+                "@type": "Place",
+                "name": e.venue,
+                "address": {
+                    "@type": "PostalAddress",
+                    "addressLocality": "Missoula",
+                    "addressRegion": "MT",
+                    "addressCountry": "US",
+                },
+            },
+        }
+        if e.url:
+            ev["url"] = e.url
+        if e.image:
+            ev["image"] = e.image
+        items.append(ev)
+    if not items:
+        return None
+    return {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "itemListElement": [
+            {"@type": "ListItem", "position": i + 1, "item": ev}
+            for i, ev in enumerate(items)
+        ],
+    }
+
+
+def _site_jsonld(base_url: str | None) -> dict:
+    site = {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "What's Up Missoula",
+        "description": "The best grocery deals and local events in Missoula, "
+                       "Montana — updated every Wednesday.",
+    }
+    if base_url:
+        site["url"] = base_url
+    return site
+
+
+def _recommends_jsonld(rec: dict) -> dict:
+    items = []
+    for b in rec.get("businesses", []):
+        biz = {
+            "@type": "LocalBusiness",
+            "name": b["name"],
+            "description": b.get("what", ""),
+            "address": {
+                "@type": "PostalAddress",
+                "addressLocality": "Missoula",
+                "addressRegion": "MT",
+                "addressCountry": "US",
+            },
+        }
+        if b.get("website"):
+            biz["url"] = b["website"]
+        if b.get("email"):
+            biz["email"] = b["email"]
+        if b.get("phone"):
+            biz["telephone"] = b["phone"]
+        items.append(biz)
+    return {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "itemListElement": [
+            {"@type": "ListItem", "position": i + 1, "item": biz}
+            for i, biz in enumerate(items)
+        ],
+    }
+
+
+def _write_sitemap_and_robots(out: Path, base_url: str | None, paths: list[str]) -> None:
+    """sitemap.xml needs absolute URLs, so it's skipped without a base_url;
+    robots.txt is always written (the Sitemap: line is what's conditional)."""
+    robots = "User-agent: *\nAllow: /\n"
+    if base_url:
+        lastmod = _date.today().isoformat()
+        urls = "\n".join(
+            f"  <url><loc>{base_url}{p}</loc><lastmod>{lastmod}</lastmod>"
+            f"<changefreq>weekly</changefreq></url>"
+            for p in paths
+        )
+        (out / "sitemap.xml").write_text(
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+            f"{urls}\n</urlset>\n",
+            encoding="utf-8",
+        )
+        robots += f"\nSitemap: {base_url}/sitemap.xml\n"
+    (out / "robots.txt").write_text(robots, encoding="utf-8")
+
+
 def render(report: WeeklyReport, out_dir: str | Path) -> Path:
     out = Path(out_dir).resolve()
     out.mkdir(parents=True, exist_ok=True)
@@ -94,16 +222,21 @@ def render(report: WeeklyReport, out_dir: str | Path) -> Path:
         autoescape=select_autoescape(["html", "j2"]),
     )
     env.filters["prettydate"] = _pretty_date
+    base_url = _base_url()
+    env.globals["base_url"] = base_url
+    sitemap_paths = ["/", "/events/"]
 
     # Map store name → its ad's through-date so each top-steal can show an expiry
     # (the date lives on the StoreWeek, not the TopSteal — single source of truth).
     store_dates = {s.name: s.valid_through for s in report.stores if s.valid_through}
-    html = env.get_template("index.html.j2").render(report=report, store_dates=store_dates)
+    html = env.get_template("index.html.j2").render(
+        report=report, store_dates=store_dates, jsonld=_site_jsonld(base_url))
     (out / "index.html").write_text(html, encoding="utf-8")
 
     # Events page → /events/index.html (served at /events/). Same report, same
     # shared assets (absolute /static paths work from the subdir).
-    events_html = env.get_template("events.html.j2").render(report=report)
+    events_html = env.get_template("events.html.j2").render(
+        report=report, jsonld=_events_jsonld(report))
     events_dir = out / "events"
     events_dir.mkdir(parents=True, exist_ok=True)
     (events_dir / "index.html").write_text(events_html, encoding="utf-8")
@@ -113,10 +246,14 @@ def render(report: WeeklyReport, out_dir: str | Path) -> Path:
     if RECOMMENDS.is_file():
         rec = yaml.safe_load(RECOMMENDS.read_text(encoding="utf-8")) or {}
         if rec.get("businesses"):
-            rec_html = env.get_template("recommends.html.j2").render(rec=rec)
+            rec_html = env.get_template("recommends.html.j2").render(
+                rec=rec, jsonld=_recommends_jsonld(rec))
             rec_dir = out / "recommends"
             rec_dir.mkdir(parents=True, exist_ok=True)
             (rec_dir / "index.html").write_text(rec_html, encoding="utf-8")
+            sitemap_paths.append("/recommends/")
+
+    _write_sitemap_and_robots(out, base_url, sitemap_paths)
 
     # Copy static assets (css, images) into the output tree.
     dest_static = out / "static"

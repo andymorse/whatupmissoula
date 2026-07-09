@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Open+Sans:wght@600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1200px; height: 630px; overflow: hidden;
+    background: linear-gradient(145deg, #0a1628 0%, #01375f 45%, #025492 100%);
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 0 90px; color: #fff; font-family: 'Montserrat', sans-serif;
+  }
+  .brand { display: flex; align-items: center; gap: 22px; margin-bottom: 48px; }
+  .brand img { height: 84px; }
+  .brand span { font-weight: 800; font-size: 40px; letter-spacing: -1px; }
+  h1 { font-size: 74px; font-weight: 800; letter-spacing: -2.5px; line-height: 1.06; }
+  h1 em { color: #ffc900; font-style: normal; }
+  .sub {
+    margin-top: 30px; font-family: 'Open Sans', sans-serif; font-weight: 600;
+    font-size: 30px; color: rgba(255,255,255,0.75);
+  }
+  .pill {
+    position: absolute; bottom: 56px; left: 90px;
+    display: inline-flex; align-items: center; gap: 12px;
+    font-size: 21px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    color: rgba(255,255,255,0.9); background: rgba(255,255,255,0.08);
+    border: 2px solid rgba(255,255,255,0.18); padding: 14px 28px; border-radius: 999px;
+  }
+  .dot { width: 14px; height: 14px; border-radius: 50%; background: #ffc900; }
+</style></head>
+<body>
+  <div class="brand">
+    <img src="../site/static/img/mark.png" alt="">
+    <span>What's Up Missoula</span>
+  </div>
+  <h1>Missoula's deals &amp; events,<br>in <em>one place</em>.</h1>
+  <div class="sub">Grocery deals · Local events · WUM Recommends</div>
+  <div class="pill"><span class="dot"></span>Refreshed every Wednesday</div>
+</body></html>
+<!-- Source for site/static/img/og-card.jpg (the social-share card).
+     Regenerate after edits (from the repo root):
+       chromium --headless --no-sandbox --window-size=1200,630 --hide-scrollbars \
+         --virtual-time-budget=5000 --screenshot=og-card.png docs/og-card.html
+       python3 -c "from PIL import Image; Image.open('og-card.png').convert('RGB') \
+         .save('site/static/img/og-card.jpg', quality=85, optimize=True)"
+       rm og-card.png -->
