@@ -182,8 +182,14 @@ h1, h2, h3, .label, nav, .btn { font-family: 'Montserrat', sans-serif; }
 }
 
 /* --- Events page --- */
+/* The deals hero gets visually cropped by the best-store card overlapping its
+   bottom (-24px). Events has no such card, plus an extra tagbar row, so its
+   blue runs deeper — trim it to keep the two pages feeling the same height. */
+.hero-events { padding-bottom: 22px; }
+.hero-events .dealsearch { margin-top: 18px; }
+
 /* Tag filter chips in the hero — show the week's tags, click to filter. */
-.tagbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 16px; }
+.tagbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
 .tagbar-label {
   font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 700;
   letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.55);
