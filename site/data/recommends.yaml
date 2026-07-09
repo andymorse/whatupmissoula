@@ -1,0 +1,33 @@
+# WUM Recommends — curated list of local businesses we vouch for.
+#
+# This file is the single source of truth for the /recommends/ page. To add a
+# business, copy an entry and fill in what you know — every contact field is
+# optional and simply won't render if it's empty or missing.
+#
+#   name:      Business name (required)
+#   category:  Short label shown as a chip, e.g. "IT & Cybersecurity" (required)
+#   what:      What they do — factual, one or two sentences (required)
+#   why:       Why WUM recommends them — the opinionated part, always positive (required)
+#   website:   Full URL
+#   email:     Contact email
+#   phone:     Human-formatted, e.g. (406) 555-0100
+#   address:   Street address shown as text
+#   socials:   List of {label, url} pairs, e.g. {label: Instagram, url: https://...}
+#
+# House rule: entries only say nice things. If we can't recommend a business,
+# it just doesn't appear here — this list never punches down.
+
+businesses:
+  - name: Fractional IT
+    category: IT & Cybersecurity
+    what: >-
+      Managed IT and cybersecurity for small and mid-sized businesses —
+      24/7 monitoring and help desk, cloud services, backups, and security
+      training. A whole IT department for a fraction of the cost of hiring one.
+    why: >-
+      Full disclosure: Fractional IT is run by the same folks who bring you
+      What's Up Missoula — so yes, we're biased, and yes, we'd still hire
+      them. Enterprise-grade support with Montana roots, zero hidden fees,
+      and a real human when you need help.
+    website: https://fractionalit.io
+    email: howdy@fractionalit.io

@@ -1,0 +1,54 @@
+{% extends "base.html.j2" %}
+{% block title %}What's Up Missoula — WUM Recommends: Local Businesses We Trust{% endblock %}
+{% block body %}
+<header class="hero hero-events">
+  <div class="container">
+    <div class="topbar">
+      <div class="brand">
+        <img src="/static/img/mark.png" alt="What's Up Missoula">
+        <span>What's Up Missoula</span>
+      </div>
+      <nav class="sitenav">
+        <a href="/">Deals</a>
+        <a href="/events/">Events</a>
+        <a href="/recommends/" class="active">Recommends</a>
+      </nav>
+    </div>
+    <span class="label">WUM Recommends</span>
+    <h1>Local businesses we'd <em>send a friend to</em>.</h1>
+    <p class="sub">Missoula runs on its local businesses. These are the ones we know, use, and happily vouch for.</p>
+  </div>
+</header>
+
+<section class="section">
+  <div class="container">
+    <div class="rec-note">
+      <span class="label">How this list works</span>
+      <p>WUM Recommends is an opinionated list — our honest take on businesses we've dealt with and genuinely like. Nobody pays to be here, and we only say nice things: if a business isn't listed, it just means we haven't written about them yet, never that we're against them. This list doesn't punch down.</p>
+    </div>
+
+    <div class="bizlist">
+      {% for b in rec.businesses %}
+      <div class="biz">
+        <div class="biz-cat">{{ b.category }}</div>
+        <h3 class="biz-name">{% if b.website %}<a href="{{ b.website }}" target="_blank" rel="noopener">{{ b.name }}</a>{% else %}{{ b.name }}{% endif %}</h3>
+        <p class="biz-what">{{ b.what }}</p>
+        <div class="biz-why">
+          <span class="biz-why-label">Why we recommend them</span>
+          <p>{{ b.why }}</p>
+        </div>
+        {% if b.website or b.email or b.phone or b.address or b.socials %}
+        <div class="biz-contact">
+          {% if b.website %}<a href="{{ b.website }}" target="_blank" rel="noopener">{{ b.website|replace('https://','')|replace('http://','')|trim('/') }}</a>{% endif %}
+          {% if b.email %}<a href="mailto:{{ b.email }}">{{ b.email }}</a>{% endif %}
+          {% if b.phone %}<a href="tel:{{ b.phone|replace('(','')|replace(')','')|replace(' ','')|replace('-','') }}">{{ b.phone }}</a>{% endif %}
+          {% if b.address %}<span>{{ b.address }}</span>{% endif %}
+          {% for s in b.socials or [] %}<a href="{{ s.url }}" target="_blank" rel="noopener">{{ s.label }}</a>{% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -10,6 +10,7 @@ import shutil
 from datetime import date as _date
 from pathlib import Path
 
+import yaml
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from schema import WeeklyReport
@@ -30,6 +31,7 @@ SITE = HERE.parent / "site"
 TEMPLATES = SITE / "templates"
 STATIC = SITE / "static"
 ROOT_ASSETS = SITE / "root"  # files served from the site root (favicons, manifest)
+RECOMMENDS = SITE / "data" / "recommends.yaml"  # curated business list (not weekly data)
 
 
 TOP_STEALS_TARGET = 12  # page shows Top Steals in a 4-up grid; 12 = 3 full rows
@@ -105,6 +107,16 @@ def render(report: WeeklyReport, out_dir: str | Path) -> Path:
     events_dir = out / "events"
     events_dir.mkdir(parents=True, exist_ok=True)
     (events_dir / "index.html").write_text(events_html, encoding="utf-8")
+
+    # Recommends page → /recommends/index.html. Owner-curated YAML, not part of
+    # the weekly report — rendered whenever the data file has entries.
+    if RECOMMENDS.is_file():
+        rec = yaml.safe_load(RECOMMENDS.read_text(encoding="utf-8")) or {}
+        if rec.get("businesses"):
+            rec_html = env.get_template("recommends.html.j2").render(rec=rec)
+            rec_dir = out / "recommends"
+            rec_dir.mkdir(parents=True, exist_ok=True)
+            (rec_dir / "index.html").write_text(rec_html, encoding="utf-8")
 
     # Copy static assets (css, images) into the output tree.
     dest_static = out / "static"
