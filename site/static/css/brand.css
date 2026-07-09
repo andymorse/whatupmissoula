@@ -23,6 +23,11 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* Author display rules (e.g. .event { display:flex }) silently override the
+   UA's [hidden] { display:none }, so JS show/hide via the hidden attribute
+   breaks without this. */
+[hidden] { display: none !important; }
+
 body {
   font-family: 'Open Sans', sans-serif;
   font-size: 17px;
