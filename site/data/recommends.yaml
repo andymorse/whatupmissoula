@@ -32,12 +32,12 @@ businesses:
     website: https://fractionalit.io
     email: howdy@fractionalit.io
 
-businesses:
   - name: Miller Creek Cafe
     category: Restaurants
     what: >-
-      Restaurant, lunch, dinner, burger, beer, 4915 lower miller creek road
+      Restaurant, lunch, dinner, burger, beer
     why: >-
-      Full disclosure: Great Local small business serving the Miller Creek Community in Missoula. 
+      Great local small business serving the Miller Creek community in Missoula.
     website: https://millercreekcafe.com/
     phone: (406) 251-3656
+    address: 4915 Lower Miller Creek Road
