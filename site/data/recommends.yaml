@@ -137,6 +137,46 @@ businesses:
       - label: Instagram
         url: https://www.instagram.com/oxbowbart/
 
+  - name: Endurance Physio
+    category: Health & Medical
+    what: >-
+      One-on-one sports and orthopedic physical therapy in downtown Missoula
+      since 2015 — running injury rehab, bike fitting, pelvic health,
+      vestibular and balance therapy, and strength classes, with a team of
+      eight licensed DPTs.
+    why: >-
+      Missoula is lucky to have some of the best PTs out there, and
+      Endurance is the best of the best. Patient-centered, one-on-one care
+      from people who understand athletes because they are athletes.
+    website: https://www.endurancephysio.net/
+    email: endurancephysioinfo@gmail.com
+    phone: (406) 926-2150
+    address: 214 E Main St, Missoula
+    socials:
+      - label: Instagram
+        url: https://www.instagram.com/resilience_ep/
+
+  - name: The Roxy Theater
+    category: Arts & Entertainment
+    what: >-
+      Nonprofit, community-owned movie theater on the Hip Strip — a diverse
+      slate of new releases and classics, plus festivals like the
+      International Wildlife Film Festival and the Montana Film Festival,
+      and the Roxy Film Academy.
+    why: >-
+      Love movies? This is your place. Premium popcorn and a lineup that
+      mixes fresh releases with the classics — it's the place to go for
+      movies in Missoula. Pro tip: What's Up Missoula lists the coming
+      week's Roxy showings on our events page — link below.
+    website: https://www.theroxytheater.org/
+    phone: (406) 728-9380
+    address: 718 South Higgins Ave, Missoula
+    socials:
+      - label: "This Week's Showtimes on WUM"
+        url: https://whatsupmissoula.com/events/
+      - label: Instagram
+        url: https://www.instagram.com/theroxy406/
+
   - name: Miller Creek Cafe
     category: Restaurants
     what: >-
