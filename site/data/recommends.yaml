@@ -32,6 +32,23 @@ businesses:
     website: https://fractionalit.io
     email: howdy@fractionalit.io
 
+  - name: Everything Drains, LLC
+    category: Plumbing & Drains
+    what: >-
+      Drain cleaning and repair experts serving Missoula and the surrounding
+      area, available 24/7 — drain, sewer, and gutter cleaning, hydro-jetting,
+      and trenchless spot repair (CIPP).
+    why: >-
+      We've used them ourselves and they did a great job — clean, professional,
+      and best of all, a reasonable price. When a drain backs up you want
+      someone who shows up and does it right; this is that guy.
+    website: https://www.everythingdrainsllc.com/
+    email: everythingdrainsllc@gmail.com
+    phone: (406) 240-8083
+    socials:
+      - label: Facebook
+        url: https://www.facebook.com/EverythingDrainsLLC
+
   - name: Miller Creek Cafe
     category: Restaurants
     what: >-
