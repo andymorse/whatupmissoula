@@ -82,6 +82,23 @@ businesses:
     phone: (406) 540-4117
     address: 1510 S. Reserve St, Missoula
 
+  - name: Montana Free Press — Missoula This Week
+    category: Local News
+    what: >-
+      A free weekly newsletter from Montana Free Press, Montana's independent
+      nonprofit newsroom. Reporter Katie Fairbanks covers Missoula city
+      government, public school meetings, business news, and local events —
+      the stuff that actually shapes life here.
+    why: >-
+      Real local journalism, free, from a nonprofit newsroom that answers to
+      Montanans instead of advertisers. If you want to know what city council
+      actually decided — not just what people are yelling about online — this
+      is the newsletter to read.
+    website: https://montanafreepress.org/missoula-this-week/
+    socials:
+      - label: Subscribe
+        url: https://montanafreepress.org/newsletters-sign-up/
+
   - name: Miller Creek Cafe
     category: Restaurants
     what: >-
