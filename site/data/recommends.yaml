@@ -100,6 +100,42 @@ businesses:
       - label: Subscribe
         url: https://montanafreepress.org/newsletters-sign-up/
 
+  - name: Harlequin Organic Produce
+    category: Farms & Food
+    what: >-
+      Certified-organic farm growing distinctly colorful, seasonally flavored
+      produce for the Missoula and Jocko valleys since 2010. Buy through a
+      customizable CSA farm share, their online market, seasonal pop-up
+      sales, or on the shelves of local grocery stores.
+    why: >-
+      A CSA share from Harlequin makes eating your vegetables the best part
+      of the week — genuinely beautiful, flavorful produce grown right here,
+      and because the share is customizable you get what you'll actually
+      cook, not a mystery box.
+    website: https://harlequinorganicproduce.com/
+    socials:
+      - label: Instagram
+        url: https://www.instagram.com/harlequinproduce/
+
+  - name: Oxbow Cattle Company
+    category: Farms & Food
+    what: >-
+      Grass-raised, grass-finished beef from a locally owned Missoula ranch
+      practicing regenerative agriculture. Individual cuts at their
+      Farm-2-Market store and online shop, plus custom beef orders (they
+      sell out — email to join the waitlist).
+    why: >-
+      Beef with a return address. Oxbow's aim is to leave the land better
+      tomorrow than they found it today, and the beef that comes off that
+      kind of ranching speaks for itself. The custom orders selling out
+      every year tells you what Missoula already knows.
+    website: https://www.oxbowcattleco.com/
+    phone: (406) 529-3881
+    address: 6225 Haugan Drive, Missoula
+    socials:
+      - label: Instagram
+        url: https://www.instagram.com/oxbowbart/
+
   - name: Miller Creek Cafe
     category: Restaurants
     what: >-
