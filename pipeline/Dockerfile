@@ -30,8 +30,8 @@ COPY site/    /app/site/
 COPY ai/      /app/ai/
 
 # Non-root: a bug or SSRF in the pipeline shouldn't be able to touch the
-# image. /app/site/output and /app/pipeline/drafts are bind-mounted volumes,
-# so wum owns its writable surface and nothing else.
+# image. /app/site/output, /app/pipeline/drafts and /app/pipeline/state are
+# mounted volumes, so wum owns its writable surface and nothing else.
 #
 # UID/GID are build args so the container user can match the host user that
 # owns .env on the VPS (set WUM_UID/WUM_GID in .env to `id -u`/`id -g` of
@@ -52,7 +52,7 @@ RUN set -eux; \
     if ! getent passwd "${WUM_UID}" >/dev/null; then \
         useradd -u "${WUM_UID}" -g "${WUM_GID}" -m -d /home/wum wum; \
     fi; \
-    mkdir -p /app/site/output /app/pipeline/drafts; \
+    mkdir -p /app/site/output /app/pipeline/drafts /app/pipeline/state; \
     chown -R "${WUM_UID}:${WUM_GID}" /app
 USER ${WUM_UID}:${WUM_GID}
 

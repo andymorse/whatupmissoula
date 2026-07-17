@@ -82,7 +82,9 @@ stores:
     # scans forward and picks the ad whose date range covers today.
     kind: "web_ad"
     weekly_ad_url: "https://www.orangestreetfoodfarm.com/weekly-ads"
-    ad_seed_id: 906
+    # Seed is a floor, not the tracker: the resolved id persists in
+    # pipeline/state (volume-mounted on the VPS) and advances ~+2/week.
+    ad_seed_id: 917
     scan_window: 8
   # Super1 — PARKED 2026-06-05: Stevensville + Hamilton are out of town, so we
   # skip them for now to save run time + AI tokens. Uncomment to re-enable.

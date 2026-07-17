@@ -41,9 +41,11 @@ services:
       - ./drops:/app/drops              # manual flyer drops (Albertsons etc.); upload PDFs here
       - wum_site:/app/site/output       # rendered output (also served by caddy)
       - wum_drafts:/app/pipeline/drafts # drafts persist between build & publish
+      - wum_state:/app/pipeline/state   # resolved web-ad ids (scan cursor) persist between runs
 
 volumes:
   wum_site:
   wum_drafts:
+  wum_state:
   caddy_data:
   caddy_config:
