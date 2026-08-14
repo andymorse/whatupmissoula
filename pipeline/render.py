@@ -15,7 +15,7 @@ import yaml
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from schema import WeeklyReport
-from settings import env as _env
+from settings import env as _env, load_config
 
 LOCAL_TZ = ZoneInfo("America/Denver")  # Missoula — JSON-LD event times carry the offset
 
@@ -104,6 +104,25 @@ def _showtime_iso(st) -> str | None:
     except (ValueError, TypeError):
         return None
     return dt.replace(tzinfo=LOCAL_TZ).isoformat()
+
+
+def _events_by_venue(report: WeeklyReport) -> list[dict]:
+    """Group events by venue so the page reads venue-by-venue, like the deals
+    page reads store-by-store.
+
+    Order is first appearance in report.events, not alphabetical: run.py appends
+    the fetched lineup (The Roxy) before the generated recurring venues, so the
+    anchor venue stays on top without anything being hardcoded here.
+    """
+    notes = ((load_config().get("events") or {}).get("venue_notes")) or {}
+    order: list[str] = []
+    groups: dict[str, list] = {}
+    for e in report.events or []:
+        if e.venue not in groups:
+            groups[e.venue] = []
+            order.append(e.venue)
+        groups[e.venue].append(e)
+    return [{"name": v, "note": notes.get(v), "events": groups[v]} for v in order]
 
 
 def _events_jsonld(report: WeeklyReport) -> dict | None:
@@ -246,7 +265,7 @@ def render(report: WeeklyReport, out_dir: str | Path) -> Path:
     # Events page → /events/index.html (served at /events/). Same report, same
     # shared assets (absolute /static paths work from the subdir).
     events_html = env.get_template("events.html.j2").render(
-        report=report, jsonld=_events_jsonld(report))
+        report=report, venues=_events_by_venue(report), jsonld=_events_jsonld(report))
     events_dir = out / "events"
     events_dir.mkdir(parents=True, exist_ok=True)
     (events_dir / "index.html").write_text(events_html, encoding="utf-8")

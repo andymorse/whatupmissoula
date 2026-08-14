@@ -286,6 +286,24 @@ h1, h2, h3, .label, nav, .btn { font-family: 'Montserrat', sans-serif; }
 }
 .event-times { margin-top: 14px; font-size: 14px; color: var(--gray-600); line-height: 1.7; }
 .event-times .day { font-weight: 700; color: var(--navy-deep); }
+.event-note { margin-top: 12px; font-size: 13px; color: var(--gray-400); font-style: italic; line-height: 1.5; }
+
+/* --- Venue blocks (events page) — mirrors .store-block on the deals page so
+   both pages group the same way: one card per venue / per store. --- */
+.venue-block { margin-top: 32px; }
+.venue-block h3 {
+  font-size: 24px; font-weight: 700; color: var(--navy-deep);
+  display: flex; align-items: center; gap: 10px;
+  padding-bottom: 10px; border-bottom: 2px solid var(--gray-100);
+}
+.venue-count {
+  font-family: 'Montserrat'; font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+  background: rgba(28,46,89,0.08); color: var(--navy-deep);
+  border: 1px solid rgba(28,46,89,0.18);
+  border-radius: 100px; padding: 2px 9px;
+}
+.venue-note { font-size: 13px; color: var(--gray-400); font-style: italic; margin: 10px 0 0; }
+.venue-block .events { margin-top: 20px; }
 
 /* --- Store blocks --- */
 .store-block { background: var(--white); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); padding: 28px 32px; margin-bottom: 22px; }

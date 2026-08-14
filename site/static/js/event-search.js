@@ -10,6 +10,16 @@
   var tagbar = document.getElementById('event-tagbar');
   var cards  = [].slice.call(document.querySelectorAll('.event'));
   var chips  = tagbar ? [].slice.call(tagbar.querySelectorAll('.tagchip')) : [];
+  var venues = [].slice.call(document.querySelectorAll('.venue-block'));
+
+  // Events are grouped under a venue heading, so a filter that hides every card
+  // in a venue must hide that venue's heading too — otherwise you get a stray
+  // "Draught Works Brewery" title with nothing under it.
+  function syncVenues() {
+    venues.forEach(function (v) {
+      v.hidden = !v.querySelector('.event:not([hidden])');
+    });
+  }
 
   // Search + filter chips are JS-only — reveal them now that they work.
   if (wrap) wrap.hidden = false;
@@ -30,6 +40,7 @@
 
     if (!q) {
       cards.forEach(function (c) { c.hidden = false; });
+      syncVenues();
       status.hidden = true;
       return;
     }
@@ -39,6 +50,7 @@
       c.hidden = !hit;
       if (hit) hits++;
     });
+    syncVenues();
     status.hidden = false;
     status.textContent = hits === 0
       ? 'No events match “' + raw + '”.'

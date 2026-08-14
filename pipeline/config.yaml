@@ -56,14 +56,22 @@ email:
 # recurring schedule we generate locally instead. No network, no AI.
 # See recurring_events.py for the field reference.
 events:
+  # One-line blurb under each venue's heading on /events/. Keyed by the venue
+  # name exactly as it appears on the events (The Roxy's comes from roxy_fetch,
+  # the rest from `recurring` below). A venue with no entry just shows its name.
+  venue_notes:
+    "The Roxy Theater": >-
+      Locally programmed at Missoula's nonprofit community cinema.
+    "Draught Works Brewery": >-
+      Northside taproom on Toole Ave. The weekly lineup changes — see their
+      listing for who's playing.
+
   recurring:
     - venue: "Draught Works Brewery"
       url: "https://www.draughtworksbrewery.com/events/"
       # Draught Works' site has no events feed — their own /events/ page embeds
       # missoulaevents.net. Schedule below is from their /events/recurring-events/
       # page, CONFIRMED 2026-08-14. Update here when they change it.
-      note: >-
-        Weekly lineup changes — see Draught Works' listing for who's playing.
       items:
         - title: "Live Music on the Murphy Stage"
           weekday: ["Thursday", "Saturday"]

@@ -49,11 +49,15 @@
 <section class="section">
   <div class="container">
     <span class="label">This week</span>
-    <h2>At The Roxy Theater</h2>
-    <p class="order-note">Locally programmed at Missoula's nonprofit community cinema. Search &ldquo;kids&rdquo; for family-friendly screenings, or &ldquo;special&rdquo; for one-off events.</p>
+    <h2>What&rsquo;s on around town</h2>
+    <p class="order-note">Venue by venue. Search &ldquo;kids&rdquo; for family-friendly screenings, or &ldquo;special&rdquo; for one-off events.</p>
     {% if report.events %}
-    <div class="events" style="margin-top:24px">
-      {% for e in report.events %}
+    {% for v in venues %}
+    <div class="venue-block">
+      <h3>{{ v.name }} <span class="venue-count">{{ v.events|length }}</span></h3>
+      {% if v.note %}<p class="venue-note">{{ v.note }}</p>{% endif %}
+      <div class="events">
+      {% for e in v.events %}
       {% set kid = 'kid-friendly' in e.tags %}
       {% set special = 'special-event' in e.tags %}
       <div class="event" data-search="{{ (e.title ~ ' ' ~ (e.series or '') ~ ' ' ~ (e.tags|join(' ')) ~ ' ' ~ e.venue ~ (' kids family family-friendly' if kid else '') ~ (' festival' if special else ''))|e }}">
@@ -67,7 +71,10 @@
           </div>
           {% endif %}
           <h3 class="event-title">{% if e.url %}<a href="{{ e.url }}" target="_blank" rel="noopener">{{ e.title }}</a>{% else %}{{ e.title }}{% endif %}</h3>
-          <div class="event-meta">{{ e.venue }}{% if e.runtime_min %} · {{ e.runtime_min }} min{% endif %}</div>
+          {# Venue is the block heading now, so repeating it per card is noise —
+             the meta line carries only what's card-specific. It stays in
+             data-search above, so searching a venue name still works. #}
+          {% if e.runtime_min %}<div class="event-meta">{{ e.runtime_min }} min</div>{% endif %}
           {% if e.series %}<div class="event-series">{{ e.series }}</div>{% endif %}
           {% if e.showtimes %}
           <div class="event-times">
@@ -77,10 +84,13 @@
             {% endfor %}
           </div>
           {% endif %}
+          {% if e.note %}<p class="event-note">{{ e.note }}</p>{% endif %}
         </div>
       </div>
       {% endfor %}
+      </div>
     </div>
+    {% endfor %}
     {% else %}
     <p class="order-note" style="margin-top:16px">No screenings listed for this week yet — check back Wednesday.</p>
     {% endif %}
