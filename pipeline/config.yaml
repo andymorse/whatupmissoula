@@ -51,6 +51,49 @@ email:
      "app store", "google play", "apps.apple"]
 
 # Stores in scope (mirror ai/guidance.md §2). `senders` maps a store to the
+# Events page extras. The Roxy is fetched from its own API (roxy_fetch.py); this
+# section is for venues with NO machine-readable calendar, whose published
+# recurring schedule we generate locally instead. No network, no AI.
+# See recurring_events.py for the field reference.
+events:
+  recurring:
+    - venue: "Draught Works Brewery"
+      url: "https://www.draughtworksbrewery.com/events/"
+      # Draught Works' site has no events feed — their own /events/ page embeds
+      # missoulaevents.net. Schedule below is from their /events/recurring-events/
+      # page, CONFIRMED 2026-08-14. Update here when they change it.
+      note: >-
+        Weekly lineup changes — see Draught Works' listing for who's playing.
+      items:
+        - title: "Live Music on the Murphy Stage"
+          weekday: ["Thursday", "Saturday"]
+          time: "7:00 PM"
+          tags: ["Live music"]
+        - title: "Sunday Night Jazz"
+          weekday: "Sunday"
+          time: "6:00 PM"
+          tags: ["Live music"]
+        - title: "Music BINGO"
+          weekday: "Tuesday"
+          time: "7:00 PM"
+          tags: ["Trivia & games"]
+        - title: "Wednesday Night Trivia"
+          weekday: "Wednesday"
+          time: "7:00 PM"
+          tags: ["Trivia & games"]
+        - title: "Vinyl Night"
+          weekday: "Thursday"
+          weeks: [1]                # first Thursday of the month only
+          time: "7:00 PM"
+          series: "First Thursday"
+          tags: ["Live music"]
+          note: >-
+            Bring your own records — run with Ear Candy Music.
+        - title: "'Rowler Mondays"
+          weekday: "Monday"
+          time: "All day"
+          tags: ["Deal"]
+
 # addresses its flyer emails come from (supports "*.domain" wildcards). The
 # store name here is just a hint — the AI confirms the real store from the ad.
 # Senders below were CONFIRMED against real weekly-ad emails on 2026-05-27.

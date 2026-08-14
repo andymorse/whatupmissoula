@@ -65,6 +65,18 @@ def main() -> int:
             print("No report.json to re-render — run a full job first.", file=sys.stderr)
             return 1
         report = WeeklyReport.from_dict(json.loads(src.read_text(encoding="utf-8")))
+        # Recurring events are generated, not fetched, so refresh them here too —
+        # otherwise a config edit needs a full run to show up. Drop the previous
+        # pass first so repeated re-renders don't stack duplicates.
+        try:
+            from recurring_events import fetch_recurring_events
+            recurring = fetch_recurring_events(cfg, report.week_of)
+            venues = {v.get("venue") for v in
+                      (cfg.get("events") or {}).get("recurring") or []}
+            kept = [e for e in (report.events or []) if e.venue not in venues]
+            report.events = kept + recurring
+        except Exception as e:
+            print(f"  ! Recurring events failed ({e}) — skipping", file=sys.stderr)
         path = render(report, draft_dir)
         print(f"Re-rendered {src} → {path}")
         print("Review it, then run:  python run.py --publish")
@@ -194,8 +206,9 @@ def main() -> int:
             except Exception as e:
                 print(f"  ! CHEF'STORE fetch failed ({e}) — skipping", file=sys.stderr)
 
-    # Events page: this week's local lineup (Roxy Theater v1, Wed→Wed), AI-tagged
-    # for kid-friendly / special events. Network + AI, so skip offline/test paths.
+    # Events page: this week's local lineup (Wed→Wed). The Roxy is fetched from
+    # its API and AI-tagged for kid-friendly / special events, so it's skipped on
+    # offline/test paths.
     if not (args.sample or args.url or args.images):
         try:
             from roxy_fetch import fetch_roxy_events
@@ -206,6 +219,20 @@ def main() -> int:
             print(f"    → {len(report.events)} film(s) this week")
         except Exception as e:                     # events are additive, never fatal
             print(f"  ! Roxy events fetch failed ({e}) — skipping", file=sys.stderr)
+
+    # Venues with no fetchable calendar: generate their published recurring
+    # schedule from config. No network and no AI, so this runs on every path —
+    # and deliberately after enrich_events, which only tags the fetched lineup.
+    try:
+        from recurring_events import fetch_recurring_events
+        recurring = fetch_recurring_events(cfg, week_of)
+        if recurring:
+            report.events = (report.events or []) + recurring
+            venues = {e.venue for e in recurring}
+            print(f"  • Recurring: {len(recurring)} event(s) from "
+                  f"{', '.join(sorted(venues))}")
+    except Exception as e:                         # events are additive, never fatal
+        print(f"  ! Recurring events failed ({e}) — skipping", file=sys.stderr)
 
     path = render(report, draft_dir)
     print(f"Draft rendered → {path}")
