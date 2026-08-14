@@ -20,7 +20,13 @@ hold. Link to an issue or a doc if there's more detail.
 
 - [ ] **Cron automation** — move off manual runs to a scheduled weekly job.
   Schedule for **Wednesday morning** — that's when the store ads land in the
-  mailbox. Currently run by hand on Wednesday. 
+  mailbox. Currently run by hand on Wednesday. Phase 1 of
+  [the automation + civic plan](docs/automation-and-civic-plan.md).
+- [ ] **Albertsons auto-fetch** — have an agent drop the PDF into
+  `drops/Albertsons/` before the run, replacing the manual upload.
+- [ ] **Email review + approval** — pipeline emails the draft; reply `ok 1 2 4`
+  to publish. No web backend needed (reuses the existing IMAP plumbing). This
+  is what makes hands-off automation safe. Phase 2 of the plan above.
 
 ## Next
 *Decided, not started.*
@@ -30,6 +36,11 @@ hold. Link to an issue or a doc if there's more detail.
   email mechanism — `mailto:` vs a small backend.)*
 - [ ] **1st party ads** — Build pipe line
 - [ ] **SEO** - For Google, Kagi, and AI
+- [ ] **Civic feed (name TBD)** — meetings, agendas, and what's being built, in
+  a WUM voice. Sources verified, costs priced, transcript pipeline designed in
+  [the plan](docs/automation-and-civic-plan.md). Blocked on Phases 1–2. **Pick
+  a name first** — candidates: City Desk, The Docket, Civic Beat, On the
+  Agenda, Front Street.
 
 ## Later
 *Ideas worth keeping; not committed.*
