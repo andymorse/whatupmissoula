@@ -263,13 +263,19 @@ def render(report: WeeklyReport, out_dir: str | Path) -> Path:
             (rec_dir / "index.html").write_text(rec_html, encoding="utf-8")
             sitemap_paths.append("/recommends/")
 
-    # About page → /about/index.html. See the opt-in note above.
+    # About page → /about/index.html. See the opt-in note above. Un-publishing
+    # has to *remove* the directory, not just skip writing it: renders accumulate
+    # in the draft tree, and promote() copies the draft wholesale over the live
+    # root — so a leftover /about/ would stay reachable by URL after the flag was
+    # turned off, unlinked and absent from the sitemap.
+    about_dir = out / "about"
     if about_published:
         about_html = env.get_template("about.html.j2").render(about=about)
-        about_dir = out / "about"
         about_dir.mkdir(parents=True, exist_ok=True)
         (about_dir / "index.html").write_text(about_html, encoding="utf-8")
         sitemap_paths.append("/about/")
+    elif about_dir.exists():
+        shutil.rmtree(about_dir)
 
     _write_sitemap_and_robots(out, base_url, sitemap_paths)
 
