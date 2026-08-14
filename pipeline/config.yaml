@@ -77,15 +77,11 @@ stores:
   - name: "Albertsons"
     senders: ["*.albertsons.com"]
   - name: "Orange Street Food Farm"   # Orange St + Reserve St; one chain ad
-    # No email — full-page JPG on their ShopHero storefront at /weekly-ads/<id>.
-    # Ad id isn't a stable +1 (904→906 observed, 905 empty); web_ad_fetch.py
-    # scans forward and picks the ad whose date range covers today.
+    # No email — full-page JPG on their ShopHero storefront. The base URL renders
+    # the current ad, so there's no id to seed or scan (ShopHero went client-side
+    # in Aug 2026; web_ad_fetch.py renders it with headless Chromium).
     kind: "web_ad"
     weekly_ad_url: "https://www.orangestreetfoodfarm.com/weekly-ads"
-    # Seed is a floor, not the tracker: the resolved id persists in
-    # pipeline/state (volume-mounted on the VPS) and advances ~+2/week.
-    ad_seed_id: 917
-    scan_window: 8
   # Super1 — PARKED 2026-06-05: Stevensville + Hamilton are out of town, so we
   # skip them for now to save run time + AI tokens. Uncomment to re-enable.
   # - name: "Super1"          # Stevensville + Hamilton; AI reads location from ad

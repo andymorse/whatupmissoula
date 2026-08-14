@@ -2,37 +2,40 @@
 
 Some stores publish their weekly ad as a full-page JPG on a ShopHero-powered
 storefront (Nuxt/Vue), not as an emailed flyer or a PDF. Orange Street Food Farm
-is the first: the ad lives at `…/weekly-ads/<ad_id>` and the page is *server*-
-rendered, so the page image URL and the printed date range are right there in the
-HTML — no headless browser needed.
+is the first: the ad lives at `…/weekly-ads`, and the page carries both the page
+image URL and the printed date range.
 
-Two wrinkles this module handles:
+  • The page used to be *server*-rendered, so a plain GET was enough. As of
+    Aug 2026 ShopHero renders the ad **client-side** — every ad URL now returns
+    the same ~42KB Nuxt shell with an empty `__NUXT_DATA__` payload, so urllib
+    sees no date range and no images at all. We render with headless Chromium
+    (already a dependency for web_flyer.py) and parse the resulting DOM. The
+    regexes below are unchanged; only the fetch moved.
 
-  • The ad id is NOT a stable +1 each week. Observed: id 904 = May 27–Jun 2,
-    id 906 = Jun 3–9 (905 is an empty placeholder, 907 500s). So we can't just
-    increment. Instead we scan a small window of ids forward from the last one
-    we resolved, read each page's printed date range, and pick the ad whose range
-    covers today. The resolved id is cached so next week's scan stays short.
+  • The base `/weekly-ads` URL renders the *current* ad on its own, so there is
+    nothing to scan. This replaced an id-scanning approach (`ad_seed_id` +
+    `scan_window` + cached last-id state) that existed only because the old
+    server-rendered pages had to be probed one id at a time — ids were not a
+    stable +1 each week. A stale seed was a recurring source of breakage; the
+    base URL can't go stale.
 
-  • A multi-page ad renders every page's <img> server-side (the site's `unlazy`
-    module runs during SSR — unlike Good Food Store, whose previews lazy-load
-    client-side and defeated a screenshot). So a plain GET gets the whole ad; we
-    pull all `ad_<id>_page_<n>_<hash>.jpg` URLs and feed them to the shared
-    image→vision path.
+  • A multi-page ad renders every page's <img>, so one render gets the whole ad;
+    we pull all `ad_<id>_page_<n>_<hash>.jpg` URLs and feed them to the shared
+    image→vision path. The source JPGs are downloaded directly — sharper input
+    for vision than screenshotting the rendered page.
 
 Config (a store with `kind: web_ad`):
 
     - name: "Orange Street Food Farm"
       kind: "web_ad"
-      weekly_ad_url: "https://www.orangestreetfoodfarm.com/weekly-ads"  # base; /<id> appended
-      ad_seed_id: 906        # a known-good ad id to start scanning from
-      scan_window: 8         # ids to probe forward from the last resolved (optional)
+      weekly_ad_url: "https://www.orangestreetfoodfarm.com/weekly-ads"
+      render_wait_ms: 20000   # optional; Chromium virtual-time budget
 """
 from __future__ import annotations
 
 import html as htmllib
-import json
 import re
+import subprocess
 import tempfile
 import urllib.request
 from datetime import date, datetime
@@ -51,13 +54,10 @@ try:
 except ImportError:
     pass
 
-HERE = Path(__file__).resolve().parent
-STATE_DIR = HERE / "state"
-
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
 
-# "Jun 3, 2026 - Jun 9, 2026" — the ad's printed valid range.
+# "Aug 12, 2026 - Aug 18, 2026" — the ad's printed valid range.
 _DATE_RANGE_RE = re.compile(
     r"([A-Z][a-z]{2} \d{1,2}, \d{4})\s*-\s*([A-Z][a-z]{2} \d{1,2}, \d{4})"
 )
@@ -71,22 +71,24 @@ _META_REFRESH_RE = re.compile(r"url=['\"]?(https?://[^'\"> ]+)", re.I)
 
 
 def fetch_web_ad_flyers(store_cfg: dict, cfg: dict) -> list[FlyerImage]:
-    """Resolve the current web ad, download its page image(s), return vision tiles."""
+    """Render the current web ad, download its page image(s), return vision tiles."""
     name = store_cfg.get("name", "Store")
     base_url = store_cfg.get("weekly_ad_url")
     if not base_url:
         raise RuntimeError(f"{name}: kind: web_ad needs a weekly_ad_url in config")
-    seed = int(store_cfg.get("ad_seed_id", 0))
-    window = int(store_cfg.get("scan_window", 8))
+    wait_ms = int(store_cfg.get("render_wait_ms", 20000))
 
-    start = max(seed, _load_last_id(name))
-    ad = _resolve_current_ad(base_url, start, window, date.today())
+    ad = _read_ad(_render_dom(base_url, wait_ms))
     if not ad:
         raise RuntimeError(
-            f"{name}: no current weekly ad found scanning ids {start}..{start + window} "
-            f"on {base_url} (is ad_seed_id stale?)"
+            f"{name}: rendered {base_url} but found no ad date range or page images. "
+            "The page may have changed again, or Chromium was blocked."
         )
-    _save_last_id(name, ad["id"])
+    if not (ad["from"] <= date.today() <= ad["through"]):
+        # Not fatal — the store sometimes posts the next week's ad early, and
+        # showing the ad they're actually publishing beats showing nothing.
+        print(f"  ! {name}: ad range {ad['from']}..{ad['through']} doesn't cover today "
+              f"({date.today()}) — using it anyway")
 
     with tempfile.TemporaryDirectory() as td:
         pairs: list[tuple[Path, str]] = []
@@ -100,37 +102,8 @@ def fetch_web_ad_flyers(store_cfg: dict, cfg: dict) -> list[FlyerImage]:
         return to_flyer_images_pairs(pairs, cfg)
 
 
-def _resolve_current_ad(base_url: str, start_id: int, window: int,
-                        today: date) -> dict | None:
-    """Scan ids [start_id .. start_id+window] and pick the ad covering today.
-
-    Falls back to the most recently *started* ad if none strictly covers today
-    (e.g. the new week's ad isn't published yet), so the site keeps showing the
-    latest rather than nothing.
-    """
-    ads = [a for a in (_probe_ad(base_url, i)
-                       for i in range(start_id, start_id + window + 1)) if a]
-    if not ads:
-        return None
-    covering = [a for a in ads if a["from"] <= today <= a["through"]]
-    if covering:
-        return max(covering, key=lambda a: a["from"])
-    started = [a for a in ads if a["from"] <= today]
-    if started:
-        return max(started, key=lambda a: a["from"])
-    return min(ads, key=lambda a: a["from"])   # nothing started yet → soonest
-
-
-def _probe_ad(base_url: str, ad_id: int) -> dict | None:
-    """Fetch one ad page; return its id/date range/image urls, or None if empty.
-
-    Returns None for placeholder ids (200 but no date/images) and for ids that
-    error (some future ids 500 until published).
-    """
-    try:
-        html = _get(f"{base_url.rstrip('/')}/{ad_id}")
-    except Exception:
-        return None
+def _read_ad(html: str) -> dict | None:
+    """Parse a rendered ad page into its date range + image urls, or None."""
     rng = _DATE_RANGE_RE.search(html)
     if not rng:
         return None
@@ -142,7 +115,26 @@ def _probe_ad(base_url: str, ad_id: int) -> dict | None:
         valid_through = datetime.strptime(rng.group(2), "%b %d, %Y").date()
     except ValueError:
         return None
-    return {"id": ad_id, "from": valid_from, "through": valid_through, "images": imgs}
+    return {"from": valid_from, "through": valid_through, "images": imgs}
+
+
+def _render_dom(url: str, wait_ms: int, chromium: str = "chromium") -> str:
+    """Load the page in headless Chromium and return the post-JS DOM."""
+    safe_url(url)  # block file:// / internal-host links before chromium loads them
+    cmd = [
+        chromium, "--headless=new", "--no-sandbox", "--disable-gpu",
+        f"--user-agent={UA}", "--accept-lang=en-US,en;q=0.9",
+        f"--virtual-time-budget={wait_ms}", "--dump-dom", url,
+    ]
+    out = subprocess.run(cmd, check=True, capture_output=True,
+                         timeout=wait_ms / 1000 + 30)
+    dom = out.stdout.decode("utf-8", "replace")
+    # An error/blocked page renders as a near-empty shell; the real ad page is
+    # ~75KB. Fail loudly rather than reporting "no ad found".
+    if len(dom) < 5000:
+        raise RuntimeError(f"Rendered DOM suspiciously small ({len(dom)}B) for {url} "
+                           "— likely blocked or an error page.")
+    return dom
 
 
 def _ad_image_urls(html: str) -> list[str]:
@@ -151,24 +143,6 @@ def _ad_image_urls(html: str) -> list[str]:
     for m in _AD_IMG_RE.finditer(html):
         seen.setdefault(m.group(0), int(m.group(1)))
     return sorted(seen, key=seen.get)
-
-
-def _load_last_id(name: str) -> int:
-    try:
-        return int(json.loads((STATE_DIR / "web_ad.json").read_text()).get(name, 0))
-    except (FileNotFoundError, ValueError, KeyError):
-        return 0
-
-
-def _save_last_id(name: str, ad_id: int) -> None:
-    STATE_DIR.mkdir(exist_ok=True)
-    path = STATE_DIR / "web_ad.json"
-    try:
-        data = json.loads(path.read_text())
-    except (FileNotFoundError, ValueError):
-        data = {}
-    data[name] = ad_id
-    path.write_text(json.dumps(data, indent=2))
 
 
 def _get_image_bytes(url: str) -> bytes:
@@ -180,10 +154,6 @@ def _get_image_bytes(url: str) -> bytes:
         if m:
             data = _get_bytes(htmllib.unescape(m.group(1)))
     return data
-
-
-def _get(url: str) -> str:
-    return _get_bytes(url).decode("utf-8", "ignore")
 
 
 def _get_bytes(url: str) -> bytes:
@@ -208,17 +178,19 @@ if __name__ == "__main__":
         print("No kind: web_ad stores in config.")
     for sc in web_ad:
         base = sc.get("weekly_ad_url", "")
-        seed = int(sc.get("ad_seed_id", 0))
-        start = max(seed, _load_last_id(sc.get("name", "")))
-        ad = _resolve_current_ad(base, start, int(sc.get("scan_window", 8)), date.today())
         print(f"\n{sc.get('name')}")
-        print(f"  Base: {base}  (scan from {start})")
+        print(f"  Base: {base}")
+        try:
+            ad = _read_ad(_render_dom(base, int(sc.get("render_wait_ms", 20000))))
+        except Exception as e:
+            print(f"  Ad:   render failed — {type(e).__name__}: {e}")
+            continue
         if ad:
-            print(f"  Ad:   id={ad['id']}  {ad['from']} → {ad['through']}  "
+            print(f"  Ad:   {ad['from']} → {ad['through']}  "
                   f"({len(ad['images'])} page image(s))")
             for u in ad["images"]:
                 print(f"        {u}")
         else:
-            print("  Ad:   (none resolved)")
+            print("  Ad:   (none parsed from rendered DOM)")
         if "--tiles" in sys.argv and ad:
             print(f"  Tiles: {len(fetch_web_ad_flyers(sc, cfg))}")

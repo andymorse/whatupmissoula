@@ -76,9 +76,15 @@ def _get(opener, url: str) -> str:
 
 
 def _find_tab(html: str, base: str, anchor_text: str) -> Optional[str]:
-    """Pick the <a href="/content/hotsheet/NN/MMMM/"> whose text matches anchor_text."""
+    """Pick the <a href="/content/hotsheet/…"> whose text matches anchor_text.
+
+    The tab URL has had two shapes: the original `/content/hotsheet/<NN>/<section_id>/`
+    and (since Aug 2026) a flattened `/content/hotsheet/<id>/`. The second path
+    segment is optional so both resolve; attributes beyond href are tolerated so a
+    class or data-attr appearing on the anchor doesn't silently break the match.
+    """
     needle = anchor_text.lower()
-    for m in re.finditer(r'<a\s+href="(/content/hotsheet/\d+/\d+/?)"\s*>(.*?)</a>',
+    for m in re.finditer(r'<a\s+href="(/content/hotsheet/\d+(?:/\d+)?/?)"[^>]*>(.*?)</a>',
                          html, re.I | re.S):
         text = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", m.group(2))).strip().lower()
         if needle in text:
