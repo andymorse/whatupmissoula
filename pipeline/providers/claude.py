@@ -18,8 +18,14 @@ from schema import WeeklyReport
 SYSTEM_PREAMBLE = (
     "You extract Missoula grocery flyer deals into strict JSON. Follow the "
     "guidance document below exactly. Output ONLY valid JSON per section 7 — "
-    "no prose, no markdown fences."
+    "no prose, no markdown fences. Do not include internal or system XML tags "
+    "in your response."
 )
+# That last sentence guards a known Claude Opus 5 behaviour: with thinking
+# disabled the model can occasionally leak internal XML into the visible
+# response, which would break _parse_json. Keep it generic — naming the tags
+# explicitly is measurably less effective, and an instruction telling the model
+# not to think makes the leak *more* likely, not less.
 
 
 class ClaudeProvider(AIProvider):
@@ -30,7 +36,7 @@ class ClaudeProvider(AIProvider):
         if not api_key:
             raise RuntimeError("ANTHROPIC_API_KEY is not set")
         self.client = Anthropic(api_key=api_key)
-        self.model = model or os.environ.get("ANTHROPIC_MODEL", "claude-opus-4-7")
+        self.model = model or os.environ.get("ANTHROPIC_MODEL", "claude-opus-5")
         # Output cap. The whole report is one JSON object, so too low a cap
         # truncates it mid-object and parsing fails. Many flyers (esp. Rosauers'
         # multi-page PDF) push the response large; default high and let .env
@@ -68,9 +74,17 @@ class ClaudeProvider(AIProvider):
         # Streaming accumulates the chunks; get_final_message() returns the same
         # complete Message (content + stop_reason), and prompt caching still
         # applies to the system block.
+        # thinking is DISABLED deliberately. On Claude Opus 5 adaptive thinking is
+        # on by default (unlike Opus 4.7, where omitting it meant no thinking), and
+        # max_tokens caps thinking + response *together* — so leaving it on would
+        # spend the JSON's output budget on reasoning and truncate the report
+        # mid-object. If extraction quality ever needs the headroom, prefer turning
+        # thinking back on at output_config={"effort": "low"} and raising
+        # max_tokens, rather than nudging the cap with thinking off.
         with self.client.messages.stream(
             model=self.model,
             max_tokens=self.max_tokens,
+            thinking={"type": "disabled"},
             system=system,
             messages=[{"role": "user", "content": content}],
         ) as stream:

@@ -8,7 +8,7 @@ site:
 
 ai:
   provider: "claude"          # overridden by AI_PROVIDER env if set
-  model: "claude-opus-4-7"
+  model: "claude-opus-5"
   guidance_file: "../ai/guidance.md"
   watchlist_file: "../ai/watchlist.md"   # optional; missing file is OK
   max_pages_per_flyer: 8       # cap vision input per flyer
