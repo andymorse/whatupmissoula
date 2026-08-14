@@ -1,0 +1,57 @@
+# About page — rendered to /about/ and linked from the site footer.
+#
+# This file is the whole page. Edit it, commit, and the page rebuilds on the
+# next `python run.py --rerender` (no fetch, no AI, no tokens).
+#
+# NOTHING PUBLISHES UNTIL `published: true` BELOW. While it's false the page
+# isn't rendered, isn't in the sitemap, and the footer link doesn't appear — so
+# a half-written draft can't go live by accident.
+#
+#   published:   flip to true when you're happy with the copy
+#   title:       <h1> on the page
+#   tagline:     one line under the title (optional)
+#   intro:       opening paragraph (optional)
+#   sections:    list of {heading, body}; add or drop as many as you like
+#   contact:     optional {label, email} shown at the bottom
+#
+# Prose fields use YAML block scalars. Keep the `>-` and indent the text under
+# it; blank lines inside a block start a new paragraph.
+
+published: false
+
+title: "About What's Up Missoula"
+
+tagline: >-
+  TODO — one line on what WUM is for.
+
+intro: >-
+  TODO — the opening paragraph. Who this is for and what they get.
+
+sections:
+  # Suggested starting points — rewrite, reorder, or delete freely.
+
+  - heading: "What this is"
+    body: >-
+      TODO — what the site does each week: the grocery deals, the events page,
+      WUM Recommends.
+
+  - heading: "Where the deals come from"
+    body: >-
+      TODO — worth being straight with people here: the deals are read from
+      public weekly ads and store websites, and prices can change, so they
+      should double-check in store. This is also the natural place to say
+      plainly that AI reads the flyers, if you want that on the record.
+
+  - heading: "Who's behind it"
+    body: >-
+      TODO — you, Missoula, and the Fractional IT connection. The Recommends
+      page already discloses that tie, so it's consistent to mention it here.
+
+  - heading: "Nobody pays to be here"
+    body: >-
+      TODO — no paid placement, how a business ends up on Recommends, and how
+      someone can suggest one.
+
+contact:
+  label: "Get in touch"
+  email: "TODO@whatsupmissoula.com"

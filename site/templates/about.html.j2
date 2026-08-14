@@ -1,0 +1,53 @@
+{% extends "base.html.j2" %}
+{% block title %}{{ about.title or "About" }} — What's Up Missoula{% endblock %}
+{% block description %}{{ about.tagline or about.intro or "About What's Up Missoula — local grocery deals, events, and businesses we vouch for." }}{% endblock %}
+{% block path %}/about/{% endblock %}
+{% block body %}
+<header class="hero hero-events">
+  <div class="container">
+    <div class="topbar">
+      <div class="brand">
+        <img src="/static/img/mark.png" alt="What's Up Missoula">
+        <span>What's Up Missoula</span>
+      </div>
+      <nav class="sitenav">
+        <a href="/">Deals</a>
+        <a href="/events/">Events</a>
+        <a href="/recommends/">Recommends</a>
+      </nav>
+    </div>
+    <span class="label">About</span>
+    <h1>{{ about.title }}</h1>
+    {% if about.tagline %}<p class="sub">{{ about.tagline }}</p>{% endif %}
+  </div>
+</header>
+
+<section class="section">
+  <div class="container">
+    {% if about.intro %}
+    <div class="rec-note">
+      <p>{{ about.intro }}</p>
+    </div>
+    {% endif %}
+
+    {% for s in about.sections or [] %}
+    <div class="biz">
+      {% if s.heading %}<h3 class="biz-name">{{ s.heading }}</h3>{% endif %}
+      {# Blank lines in the YAML block become paragraph breaks. #}
+      {% for para in (s.body or "").split("\n\n") if para.strip() %}
+      <p class="biz-what">{{ para.strip() }}</p>
+      {% endfor %}
+    </div>
+    {% endfor %}
+
+    {% if about.contact and about.contact.email %}
+    <div class="rec-note">
+      <span class="label">{{ about.contact.label or "Get in touch" }}</span>
+      <div class="biz-contact">
+        <a href="mailto:{{ about.contact.email }}">{{ about.contact.email }}</a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

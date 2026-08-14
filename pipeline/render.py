@@ -36,6 +36,7 @@ TEMPLATES = SITE / "templates"
 STATIC = SITE / "static"
 ROOT_ASSETS = SITE / "root"  # files served from the site root (favicons, manifest)
 RECOMMENDS = SITE / "data" / "recommends.yaml"  # curated business list (not weekly data)
+ABOUT = SITE / "data" / "about.yaml"             # owner-written About page (not weekly data)
 
 
 TOP_STEALS_TARGET = 12  # page shows Top Steals in a 4-up grid; 12 = 3 full rows
@@ -226,6 +227,15 @@ def render(report: WeeklyReport, out_dir: str | Path) -> Path:
     env.globals["base_url"] = base_url
     sitemap_paths = ["/", "/events/"]
 
+    # About page is owner-written and opt-in: nothing renders, nothing enters the
+    # sitemap, and the footer link stays hidden until `published: true`. That way
+    # a half-finished draft in the repo can't reach the live site by accident.
+    about = {}
+    if ABOUT.is_file():
+        about = yaml.safe_load(ABOUT.read_text(encoding="utf-8")) or {}
+    about_published = bool(about.get("published"))
+    env.globals["about_published"] = about_published  # footer link, every page
+
     # Map store name → its ad's through-date so each top-steal can show an expiry
     # (the date lives on the StoreWeek, not the TopSteal — single source of truth).
     store_dates = {s.name: s.valid_through for s in report.stores if s.valid_through}
@@ -252,6 +262,14 @@ def render(report: WeeklyReport, out_dir: str | Path) -> Path:
             rec_dir.mkdir(parents=True, exist_ok=True)
             (rec_dir / "index.html").write_text(rec_html, encoding="utf-8")
             sitemap_paths.append("/recommends/")
+
+    # About page → /about/index.html. See the opt-in note above.
+    if about_published:
+        about_html = env.get_template("about.html.j2").render(about=about)
+        about_dir = out / "about"
+        about_dir.mkdir(parents=True, exist_ok=True)
+        (about_dir / "index.html").write_text(about_html, encoding="utf-8")
+        sitemap_paths.append("/about/")
 
     _write_sitemap_and_robots(out, base_url, sitemap_paths)
 
