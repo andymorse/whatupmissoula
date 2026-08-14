@@ -191,3 +191,48 @@ businesses:
     website: https://millercreekcafe.com/
     phone: (406) 251-3656
     address: 4915 Lower Miller Creek Road
+
+  - name: Jensen Dental
+    category: Health & Medical
+    what: >-
+      Family dental practice on South Higgins, open since 2016 under Dr. Hank
+      Jensen — a Montana native. Cleanings, fillings, crowns and bridges,
+      implants, dentures, root canals, and extractions, plus cosmetic work
+      (whitening, veneers, bonding), night and sports guards, TMJ therapy, and
+      sedation for anxious patients. Emergency appointments available, and
+      they're currently taking new patients.
+    why: >-
+      We've been patients here for over ten years, and it's hands down the best
+      dental care we've had anywhere. Family-oriented in the way that actually
+      matters — they know you, they don't upsell you, and they're one of the few
+      Missoula practices still taking new patients. Montana-raised dentist,
+      independent, no corporate chain behind it.
+    website: https://www.jensendentalmt.com/
+    phone: (406) 542-2742
+    address: 1547 South Higgins Ave, Missoula
+    socials:
+      - label: Facebook
+        url: https://www.facebook.com/jensendentalmt/
+
+  - name: Draught Works Brewery
+    category: Breweries & Taprooms
+    what: >-
+      Northside taproom on Toole Ave with 20 taps — their own beer plus wine,
+      cider, and seltzer — and a rotating food truck out front. Live music on
+      the murphy stage three nights a week (Thursday and Saturday 7–9pm, Sunday
+      Night Jazz 6–8pm), Wednesday trivia, growler fills on Mondays,
+      cask-conditioned Wednesdays, and a First Friday artist showcase.
+    why: >-
+      One of the most reliably fun rooms in Missoula, and a real anchor for the
+      Northside. Live music three nights a week, a genuinely good tap list, and
+      kids are welcome — it's a brewery that acts like a community space, which
+      is exactly what we like to see.
+    website: https://www.draughtworksbrewery.com/
+    email: info@draughtworksbrewery.com
+    phone: (406) 541-1592
+    address: 915 Toole Ave, Missoula
+    socials:
+      - label: Instagram
+        url: https://www.instagram.com/draughtworks/
+      - label: Facebook
+        url: https://www.facebook.com/DraughtWorks
