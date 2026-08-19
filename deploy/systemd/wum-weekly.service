@@ -1,0 +1,38 @@
+# What's Up Missoula — weekly draft build.
+#
+# Renders a DRAFT and emails the owner that it's ready. It deliberately does
+# NOT publish: nothing reaches the live site without a human looking first.
+# (Approval-by-reply is Phase 2 in docs/automation-and-civic-plan.md.)
+#
+# Install: see docs/deploy.md §7.
+
+[Unit]
+Description=What's Up Missoula weekly draft build
+Documentation=file:/srv/wum/docs/deploy.md
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/srv/wum
+
+# The run fetches mail, scrapes several stores, renders flyers through headless
+# Chromium and calls the vision model — minutes, not seconds. Give it an hour
+# before systemd calls it hung; a normal run is well under that.
+TimeoutStartSec=3600
+
+# --notify sends the "draft ready" email (pipeline/notify.py). Drop the flag to
+# render silently.
+ExecStart=/usr/bin/docker compose run --rm pipeline python run.py --notify
+
+# Don't let a bad week retry into a loop of paid AI calls — a failure waits for
+# next Wednesday, or for someone to run it by hand.
+Restart=no
+
+# The one-shot container is removed on exit (--rm); this just tidies a run that
+# systemd had to kill on timeout.
+ExecStopPost=-/usr/bin/docker rm -f wum-pipeline
+
+[Install]
+WantedBy=multi-user.target

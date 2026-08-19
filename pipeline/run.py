@@ -41,6 +41,8 @@ def main() -> int:
     ap.add_argument("--images", help="analyze flyer image(s)/PDF(s) from a file or folder")
     ap.add_argument("--store", default=None,
                     help="store name for --url, or default store for --images")
+    ap.add_argument("--notify", action="store_true",
+                    help="email REVIEW_NOTIFY_EMAIL that the draft is ready")
     args = ap.parse_args()
 
     cfg = load_config()
@@ -257,6 +259,11 @@ def main() -> int:
         from extract import archive_drops
         archive_drops(drop_files, drops_archive, week_of)
         print(f"Archived {len(drop_files)} manual drop file(s) → {drops_archive}")
+    # Scheduled runs render unattended, so tell someone the draft is waiting.
+    # Deliberately last: a notify failure can't cost us a good draft.
+    if args.notify:
+        from notify import notify_draft_ready
+        notify_draft_ready(report, draft_dir, cfg)
     print("Review it, then run:  python run.py --publish")
     return 0
 

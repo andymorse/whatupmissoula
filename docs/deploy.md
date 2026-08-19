@@ -158,22 +158,87 @@ docker compose run --rm pipeline python run.py --publish
 
 After publish, `https://<domain>` serves the rendered site.
 
-## 7. Weekly cron
+## 7. Weekly schedule (systemd timer)
 
-Edit root's crontab (`crontab -e`) and add:
+**Wednesday 08:00 Missoula time.** The run renders a DRAFT and emails you that
+it's ready; publishing stays a manual step (the review gate).
 
-```cron
-# Monday 06:00 — build the weekly draft. Publishing stays manual (review gate).
-0 6 * * 1  cd /srv/wum && /usr/bin/docker compose run --rm pipeline python run.py >> /var/log/wum.log 2>&1
+The units live in the repo at `deploy/systemd/`, so they're version-controlled
+rather than typed into `crontab -e` on the box:
+
+```bash
+cd /srv/wum
+cp deploy/systemd/wum-weekly.{service,timer} /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now wum-weekly.timer
+
+# Confirm when it will actually fire (shown in the box's local time = UTC)
+systemctl list-timers wum-weekly.timer
 ```
 
-Then `touch /var/log/wum.log`.
+Verify, watch, and run it by hand:
 
-Once you trust the output a few weeks running, fold publish into the cron:
+```bash
+systemd-analyze calendar "Wed *-*-* 08:00:00 America/Denver"  # next few firings
+journalctl -u wum-weekly.service -f                            # live log
+journalctl -u wum-weekly.service -n 200 --no-pager             # last run
+systemctl start wum-weekly.service                             # run now, off-schedule
+```
+
+### Why 08:00 Wednesday
+
+Measured over 8 weeks of real mail, not guessed — arrival times in Mountain:
+
+| Store | Lands |
+|---|---|
+| Good Food Store | Tue ~22:15 |
+| Rosauers | Tue ~23:00 |
+| Yoke's (both locations) | Wed ~06:05 |
+
+08:00 clears the last arrival by about two hours. Albertsons comes from Flipp,
+which posts the new ad Tuesday. **Don't move this earlier than ~07:00** or
+Yoke's will start missing the window. Re-measure if a store changes its send
+time — the query is in the git history for this section's commit.
+
+### Why a timer instead of crontab
+
+`OnCalendar` takes a timezone. The VPS clock is UTC, so a plain crontab line
+would drift an hour every time Mountain flips between MDT and MST — the job
+would quietly start running at 07:00 local each winter. systemd resolves the
+zone at each firing (verified: 14:00 UTC in summer, 15:00 UTC after the
+November change — both 08:00 Mountain). You also get `journalctl` instead of a
+hand-rotated logfile, and `Persistent=true` catches a week the box was down.
+
+The timezone suffix needs systemd ≥ 252 (Ubuntu 24.04 ships 255). On anything
+older, fall back to crontab with an explicit `CRON_TZ`:
 
 ```cron
-0 6 * * 1  cd /srv/wum && /usr/bin/docker compose run --rm pipeline sh -c "python run.py && python run.py --publish" >> /var/log/wum.log 2>&1
+CRON_TZ=America/Denver
+0 8 * * 3  cd /srv/wum && /usr/bin/docker compose run --rm pipeline python run.py --notify >> /var/log/wum.log 2>&1
 ```
+
+### The review email
+
+`--notify` sends a plain-text summary (`pipeline/notify.py`) over SMTP on the
+same Gmail account the pipeline already reads with IMAP — no new secret, no new
+dependency. It lists deals per store, flags stores that came back thin or
+missing entirely (the tell for a broken fetcher), and prints the publish
+command. Recipient is `REVIEW_NOTIFY_EMAIL` in `.env`, falling back to
+`IMAP_USER` — set it to a personal address if you don't want the mailbox
+emailing itself.
+
+**Replying to it does nothing.** Approval-by-reply is Phase 2 in
+[the automation plan](automation-and-civic-plan.md) and needs a nonce plus a
+sender allowlist before it's safe to wire up.
+
+### Publishing
+
+```bash
+cd /srv/wum && docker compose run --rm pipeline python run.py --publish
+```
+
+Folding `--publish` into the timer is deliberately **not** the next step — it
+would put unreviewed AI output on the live site every week. Build Phase 2 first.
 
 ## 8. Code updates
 

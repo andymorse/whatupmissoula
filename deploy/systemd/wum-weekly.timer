@@ -1,0 +1,31 @@
+# Fires the weekly draft build: Wednesday 08:00 Missoula time.
+#
+# Why Wednesday 08:00 — measured, not guessed. Over 8 weeks of real mail the
+# flyer emails land: Good Food Store Tue ~22:15, Rosauers Tue ~23:00, Yoke's
+# (both locations) Wed ~06:05, all Mountain time. 08:00 clears the last arrival
+# by roughly two hours. Albertsons is fetched from Flipp, which publishes the
+# new ad Tuesday. Moving this earlier than ~07:00 risks missing Yoke's.
+#
+# The timezone is written into OnCalendar on purpose. The VPS clock is UTC, so
+# a plain crontab entry would drift an hour every time Mountain flips between
+# MDT and MST; systemd resolves the zone at each firing instead.
+#
+# NOTE: the "America/Denver" suffix needs systemd >= 252 (Ubuntu 24.04 ships
+# 255). On anything older, use the crontab fallback in docs/deploy.md §7.
+
+[Unit]
+Description=Weekly What's Up Missoula draft (Wed 08:00 America/Denver)
+Documentation=file:/srv/wum/docs/deploy.md
+
+[Timer]
+OnCalendar=Wed *-*-* 08:00:00 America/Denver
+
+# If the box was down Wednesday morning, run once it's back rather than skipping
+# the week entirely — a late draft still beats a stale site.
+Persistent=true
+
+# Nothing here is latency-sensitive; let systemd batch the wakeup.
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target
