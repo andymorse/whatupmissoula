@@ -38,10 +38,16 @@ class ClaudeProvider(AIProvider):
         self.client = Anthropic(api_key=api_key)
         self.model = model or os.environ.get("ANTHROPIC_MODEL", "claude-opus-5")
         # Output cap. The whole report is one JSON object, so too low a cap
-        # truncates it mid-object and parsing fails. Many flyers (esp. Rosauers'
-        # multi-page PDF) push the response large; default high and let .env
-        # override. It's only a ceiling — you're billed for tokens generated.
-        self.max_tokens = int(os.environ.get("ANTHROPIC_MAX_TOKENS", "32000"))
+        # truncates it mid-object and parsing fails. It's only a ceiling —
+        # you're billed for tokens generated, not for the headroom.
+        #
+        # Raised 32000 -> 64000 on 2026-08-19: adding Albertsons (kind: flipp)
+        # put a sixth store in the report and the response ran past 32K
+        # mid-object. Opus 5's real ceiling is 128000 (confirmed against the
+        # Models API), so there's room left if the store list grows again.
+        # Values this large REQUIRE the streaming call below — a non-streaming
+        # request would hit the SDK's 10-minute timeout before it ever went out.
+        self.max_tokens = int(os.environ.get("ANTHROPIC_MAX_TOKENS", "64000"))
 
     def analyze(self, guidance: str, flyers: list[FlyerImage], week_of: str) -> WeeklyReport:
         # System: short preamble + the (cached) guidance doc.
@@ -96,7 +102,9 @@ class ClaudeProvider(AIProvider):
             raise ValueError(
                 f"Claude hit the {self.max_tokens}-token output cap before "
                 "finishing the JSON (response truncated). Raise "
-                "ANTHROPIC_MAX_TOKENS in .env, or send fewer flyers per run."
+                "ANTHROPIC_MAX_TOKENS in .env (this model's ceiling is 128000; "
+                "no rebuild needed, .env is a bind mount), or send fewer "
+                "flyers per run."
             )
 
         raw = "".join(b.text for b in resp.content if b.type == "text").strip()
