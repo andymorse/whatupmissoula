@@ -147,8 +147,9 @@ publish). That's expected — Caddy is up, the site just hasn't been built yet.
 ## 6. First draft + publish
 
 ```bash
-# Build the weekly draft (reads mailbox, fetches flyers, calls Claude, renders)
-docker compose run --rm pipeline python run.py
+# Build the weekly draft (reads mailbox, fetches flyers, calls Claude, renders).
+# --notify also emails the "draft ready" summary; drop it to render silently.
+docker compose run --rm pipeline python run.py --notify
 
 # Eyeball the draft — it's in the wum_drafts volume; easiest way is to render
 # it to a tmp dir on the host and scp / cat, or just trust the next step and

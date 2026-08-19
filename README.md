@@ -96,13 +96,18 @@ structured-JSON path — 108 biweekly deals pulled with exact prices, zero
 vision tokens.
 
 ```bash
-# Default weekly path — fetches emails, dispatches each to its store's path
+# Default weekly path — fetches emails + web/Flipp ads, dispatches each to its
+# store's path. Renders a DRAFT; it never publishes.
 python pipeline/run.py
 
+# Same, plus the "draft ready" email (pipeline/notify.py). This is what the
+# weekly timer runs — see docs/deploy.md §7.
+python pipeline/run.py --notify
+
 # A) Render an arbitrary web flyer page (testing). NB: Orange Street's production
-#    path is kind: web_ad (web_ad_fetch.py), which auto-resolves the live ad id;
-#    this --url form just screenshots one specific page for ad-hoc checks.
-python pipeline/run.py --url "https://orangestreetfoodfarm.com/weekly-ads/906" \
+#    path is kind: web_ad (web_ad_fetch.py), whose base /weekly-ads URL renders
+#    the current ad; this --url form just screenshots one page for ad-hoc checks.
+python pipeline/run.py --url "https://www.orangestreetfoodfarm.com/weekly-ads" \
                        --store "Orange Street Food Farm"
 
 # B) Manual drop — analyze flyer image(s)/PDF(s) you saved yourself.
@@ -369,8 +374,10 @@ volume Caddy serves is empty until the first publish. That's expected.
 **6. First weekly run** (builds a draft, doesn't publish):
 
 ```bash
-docker compose run --rm pipeline python run.py
+docker compose run --rm pipeline python run.py --notify
 ```
+
+Drop `--notify` to skip the "draft ready" email.
 
 **7. Promote when the draft looks right:**
 
@@ -389,22 +396,33 @@ docker compose run --rm pipeline python run.py --rerender
 docker compose run --rm pipeline python run.py --publish
 ```
 
-**8. Add the Monday-morning cron** so you don't have to remember. As `wum`,
-`crontab -e` and add:
-
-```cron
-# Monday 06:00 — build the weekly draft. Publishing stays manual (review gate).
-0 6 * * 1  cd /opt/wum && /usr/bin/docker compose run --rm pipeline python run.py >> /var/log/wum.log 2>&1
-```
-
-Then create the log file with the right ownership:
+**8. Install the weekly timer** so you don't have to remember. The units are in
+the repo — copy them in and enable (needs root):
 
 ```bash
-sudo touch /var/log/wum.log && sudo chown wum:wum /var/log/wum.log
+sudo cp deploy/systemd/wum-weekly.{service,timer} /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now wum-weekly.timer
+systemctl list-timers wum-weekly.timer      # confirm the next firing
 ```
 
-Once you trust the output a few weeks running, fold publishing into the cron
-(see `docs/deploy.md` §7 for that variant).
+> The unit files hardcode `WorkingDirectory=/srv/wum`. **The live VPS is
+> `/srv/wum` running as root** — this README's walkthrough above describes an
+> `/opt/wum` + `wum`-user layout that the deployed box doesn't use. Treat
+> [`docs/deploy.md`](docs/deploy.md) as the authoritative runbook; if you follow
+> the `/opt/wum` path here, edit `WorkingDirectory` to match.
+
+Fires **Wednesday 08:00 Mountain**, renders a draft, and emails you that it's
+ready. Logs go to `journalctl -u wum-weekly.service`, not a logfile.
+
+Why Wednesday 08:00, and why a systemd timer rather than `crontab` (short
+version: `OnCalendar` takes a timezone, so Mountain DST doesn't shift the run):
+`docs/deploy.md` §7.
+
+**Publishing stays manual, deliberately.** Folding `--publish` into the timer
+would put unreviewed AI output on the live site every week — that's what the
+approval gate in [the automation plan](docs/automation-and-civic-plan.md)
+Phase 2 exists to make safe.
 
 ## Security notes
 

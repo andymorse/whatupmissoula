@@ -2,12 +2,17 @@
 """What's Up Missoula — weekly "AI Job" orchestrator.
 
   python run.py                 # full run: fetch → extract → analyze → render DRAFT
+  python run.py --notify        # same, then email that the draft is ready
   python run.py --sample        # render the bundled sample report (no email/API)
   python run.py --rerender      # rebuild the DRAFT from the live data (no fetch/AI)
   python run.py --publish       # promote the current draft → live web root
 
 Review-before-publish: a normal run only produces a DRAFT. After you eyeball it,
 run with --publish to push it live.
+
+--notify is what the weekly timer uses (docs/deploy.md §7): an unattended run
+that renders in silence is a run you forget to publish. It only sends mail —
+replying to it does nothing, and it never publishes.
 
 --rerender re-runs the templates over the already-published report.json — for
 shipping UI/template tweaks without re-fetching ads or spending AI tokens.
