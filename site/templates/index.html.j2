@@ -94,7 +94,6 @@
         <div class="dates">
           {% if store.valid_from and store.valid_through %}{{ store.valid_from|prettydate }} – {{ store.valid_through|prettydate }}
           {% elif store.valid_through %}Valid through {{ store.valid_through|prettydate }}{% endif %}
-          {% if not store.in_scope %}<span class="caveat">not a tracked store</span>{% endif %}
         </div>
         {% if store.kind == 'bulk_wholesale' %}
         <p class="store-note">Restaurant-supply pack sizes — prices are per case, not per unit. Best for big families, freezer-stockers, and side-business cooks.</p>

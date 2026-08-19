@@ -18,14 +18,24 @@ overall grocery value this week. Output strict JSON matching the schema in §7.
 
 ## 2. Stores in scope
 
-Confirmed (weekly-ad emails)
-- Rosauers
-- Super1 Stevensville
-- Super1 Hamilton
-- Good Food Store
-- Albertsons
+This list must match the `stores:` block in pipeline/config.yaml — that config is
+what actually gets fetched, and a store missing from here gets wrongly flagged as
+out of scope.
+
+Weekly-ad emails
+- Yoke's Fresh Market (two Missoula locations: Broadway and Reserve) — one
+  sender covers both, so read the location off the ad itself and label every
+  deal with it.
+- CHEF'STORE Missoula (US Foods bulk/wholesale) — biweekly hotsheet, pulled
+  from structured JSON rather than vision. See pipeline/chefstore_fetch.py.
+- Super1 Stevensville and Super1 Hamilton — PARKED (out of town); leave them
+  here so they're in scope if we switch them back on.
 
 Web flyer (rendered from the store's weekly-ad page)
+- Rosauers — weekly-ad PDF on their site. See pipeline/web_pdf_fetch.py.
+- Good Food Store — biweekly ad PDF, same path.
+- Albertsons — page images rebuilt from the Flipp backend.
+  See pipeline/flipp_fetch.py.
 - Orange Street Food Farm (Orange St and Reserve St) — one chain ad, scraped
   from their ShopHero storefront (https://orangestreetfoodfarm.com/weekly-ads);
   the live ad id is resolved by date each run. See pipeline/web_ad_fetch.py.
@@ -36,9 +46,11 @@ Not covered — no weekly ad
   to pull from. Excluded from comparisons (the site footer says so).
 
 
-If a flyer is from a store **not** on this list, still parse it but set
-`store.in_scope = false` and note it. If a store sent no flyer this week, omit
-it — never invent deals for a store you didn't receive.
+If a flyer is from a store **not** on this list, still parse it normally and set
+`store.in_scope = false` so the record shows it wasn't one of ours. That flag is
+bookkeeping only — it isn't rendered — so never let it change how you extract or
+compare that store's deals. If a store sent no flyer this week, omit it — never
+invent deals for a store you didn't receive.
 
 ## 3. What counts as a "deal" worth listing
 
