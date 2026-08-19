@@ -340,6 +340,23 @@ footer a { color: var(--sky); text-decoration: none; }
 footer p { max-width: 760px; margin-bottom: 8px; }
 footer p:last-child { margin-bottom: 0; }
 
+/* Important Missoula Links — curated city links above the footer fine print.
+   Wraps to as many rows as it needs; the divider sets it apart from the legal
+   copy below without adding a whole second footer band. */
+.footerlinks { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.12); }
+.footerlinks h2 {
+  font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.55);
+  margin-bottom: 12px;
+}
+.footerlinks ul { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+.footerlinks a {
+  display: inline-block; padding: 7px 14px; border-radius: 999px;
+  background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.9);
+  font-weight: 600; transition: all 0.2s ease;
+}
+.footerlinks a:hover { background: var(--gold); color: var(--navy-deep); }
+
 @media (max-width: 768px) {
   .section { padding: 44px 0; }
   table.deals .unit-col { display: none; }

@@ -1,0 +1,15 @@
+# Important Missoula Links — a short list of useful city/county links, shown in
+# the site footer on every page.
+#
+# Edit this file, commit, and the footer rebuilds on the next
+# `python run.py --rerender` (no fetch, no AI, no tokens).
+#
+#   label:  the link text (required) — keep it short, it sits inline in a row
+#   url:    full URL (required)
+#
+# Order here is the order on the page. Keep the list tight: the footer is for
+# the handful of links a Missoulian actually reaches for, not a directory.
+
+links:
+  - label: Report a Pothole
+    url: https://www.ci.missoula.mt.us/FormCenter/I-Want-To-8-8/Report-a-Pothole-121-121

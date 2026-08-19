@@ -37,6 +37,7 @@ STATIC = SITE / "static"
 ROOT_ASSETS = SITE / "root"  # files served from the site root (favicons, manifest)
 RECOMMENDS = SITE / "data" / "recommends.yaml"  # curated business list (not weekly data)
 ABOUT = SITE / "data" / "about.yaml"             # owner-written About page (not weekly data)
+LINKS = SITE / "data" / "links.yaml"             # curated city links for the footer (not weekly data)
 
 
 TOP_STEALS_TARGET = 12  # page shows Top Steals in a 4-up grid; 12 = 3 full rows
@@ -254,6 +255,14 @@ def render(report: WeeklyReport, out_dir: str | Path) -> Path:
         about = yaml.safe_load(ABOUT.read_text(encoding="utf-8")) or {}
     about_published = bool(about.get("published"))
     env.globals["about_published"] = about_published  # footer link, every page
+
+    # Important Missoula Links — owner-curated, rendered in the footer of every
+    # page. A missing or empty file just means no link row, so the site still
+    # builds fine without it.
+    footer_links = []
+    if LINKS.is_file():
+        footer_links = (yaml.safe_load(LINKS.read_text(encoding="utf-8")) or {}).get("links") or []
+    env.globals["footer_links"] = footer_links
 
     # Map store name → its ad's through-date so each top-steal can show an expiry
     # (the date lives on the StoreWeek, not the TopSteal — single source of truth).
