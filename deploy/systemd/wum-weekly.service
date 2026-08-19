@@ -22,9 +22,19 @@ WorkingDirectory=/srv/wum
 # before systemd calls it hung; a normal run is well under that.
 TimeoutStartSec=3600
 
+# The docker CLI reads $HOME/.docker/config.json. systemd does not guarantee
+# HOME for system services, and an unset HOME makes docker's behaviour
+# environment-dependent — pin it rather than find out at 08:00 on a Wednesday.
+Environment=HOME=/root
+
+# -T disables pseudo-TTY allocation. systemd gives the service /dev/null on
+# stdin, which is not a TTY; Compose usually detects that on its own, but when
+# it doesn't the failure is "the input device is not a TTY" and the week's run
+# is simply gone. The flag is free and removes the question.
+#
 # --notify sends the "draft ready" email (pipeline/notify.py). Drop the flag to
 # render silently.
-ExecStart=/usr/bin/docker compose run --rm pipeline python run.py --notify
+ExecStart=/usr/bin/docker compose run --rm -T pipeline python run.py --notify
 
 # Don't let a bad week retry into a loop of paid AI calls — a failure waits for
 # next Wednesday, or for someone to run it by hand.
