@@ -4,7 +4,7 @@
   python run.py                 # full run: fetch → extract → analyze → render DRAFT
   python run.py --notify        # same, then email that the draft is ready
   python run.py --sample        # render the bundled sample report (no email/API)
-  python run.py --rerender      # rebuild the DRAFT from the live data (no fetch/AI)
+  python run.py --rerender      # rebuild the DRAFT from the live data (no flyer re-fetch)
   python run.py --publish       # promote the current draft → live web root
 
 Review-before-publish: a normal run only produces a DRAFT. After you eyeball it,
@@ -15,7 +15,10 @@ that renders in silence is a run you forget to publish. It only sends mail —
 replying to it does nothing, and it never publishes.
 
 --rerender re-runs the templates over the already-published report.json — for
-shipping UI/template tweaks without re-fetching ads or spending AI tokens.
+shipping UI/template tweaks without re-fetching ads or spending vision tokens.
+The deals are reused verbatim; the events section is rebuilt (see
+refresh_events), because a re-render that republishes last month's Roxy lineup
+looks exactly like a publish where nothing happened.
 """
 from __future__ import annotations
 
@@ -36,12 +39,60 @@ def monday_of_this_week() -> str:
     return (today - timedelta(days=today.weekday())).isoformat()
 
 
+def refresh_events(report: WeeklyReport, cfg: dict, week_of: str, *,
+                   live: bool) -> None:
+    """Rebuild the report's events section in place: The Roxy + recurring venues.
+
+    Shared by the full run and --rerender so the two can't drift apart. The Roxy
+    publishes a plain JSON calendar and the enrichment call is a few hundred
+    tokens of text, so refreshing on every render is cheap — and a lineup three
+    weeks stale is worse than no lineup at all. That's the one place --rerender
+    touches the network: the flyers and their vision passes stay untouched.
+
+    ``live=False`` is the offline path (--sample/--url/--images): recurring
+    events are still generated (no network, no AI), the Roxy is left alone.
+    """
+    if live:
+        try:
+            from roxy_fetch import fetch_roxy_events
+            from events_enrich import enrich_events
+            print("  • The Roxy: fetching this week's lineup…")
+            films = fetch_roxy_events(week_of)
+            # Assign only once both calls succeed, so a failed fetch keeps
+            # whatever lineup the report already had rather than blanking it.
+            week_pick = enrich_events(films, week_of)
+            report.events = films
+            report.week_pick = week_pick
+            print(f"    → {len(films)} film(s) this week")
+        except Exception as e:                 # events are additive, never fatal
+            print(f"  ! Roxy events fetch failed ({e}) — skipping", file=sys.stderr)
+
+    # Venues with no fetchable calendar: generate their published recurring
+    # schedule from config. No network and no AI, so this runs on every path —
+    # and deliberately after enrich_events, which only tags the fetched lineup.
+    # Drop the previous pass first so repeated re-renders don't stack duplicates.
+    try:
+        from recurring_events import fetch_recurring_events
+        recurring = fetch_recurring_events(cfg, week_of)
+        venues = {v.get("venue") for v in
+                  (cfg.get("events") or {}).get("recurring") or []}
+        kept = [e for e in (report.events or []) if e.venue not in venues]
+        report.events = kept + recurring
+        if recurring:
+            named = {e.venue for e in recurring}
+            print(f"  • Recurring: {len(recurring)} event(s) from "
+                  f"{', '.join(sorted(named))}")
+    except Exception as e:                     # events are additive, never fatal
+        print(f"  ! Recurring events failed ({e}) — skipping", file=sys.stderr)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="What's Up Missoula weekly job")
     ap.add_argument("--sample", action="store_true", help="render bundled sample, no network")
     ap.add_argument("--publish", action="store_true", help="promote draft to live")
     ap.add_argument("--rerender", action="store_true",
-                    help="rebuild draft from live report.json (no fetch/AI)")
+                    help="rebuild draft from live report.json (reuses the deals, "
+                         "refreshes events)")
     ap.add_argument("--url", help="render a single web flyer URL (testing)")
     ap.add_argument("--images", help="analyze flyer image(s)/PDF(s) from a file or folder")
     ap.add_argument("--store", default=None,
@@ -62,8 +113,8 @@ def main() -> int:
         print(f"Published draft → {out}")
         return 0
 
-    # Re-render the templates over already-published data — no email fetch, no
-    # AI calls. For shipping UI/template changes without touching the deals.
+    # Re-render the templates over already-published data — no email fetch and no
+    # vision pass. For shipping UI/template changes without touching the deals.
     if args.rerender:
         src = live_dir / "report.json"
         if not src.exists():
@@ -72,18 +123,16 @@ def main() -> int:
             print("No report.json to re-render — run a full job first.", file=sys.stderr)
             return 1
         report = WeeklyReport.from_dict(json.loads(src.read_text(encoding="utf-8")))
-        # Recurring events are generated, not fetched, so refresh them here too —
-        # otherwise a config edit needs a full run to show up. Drop the previous
-        # pass first so repeated re-renders don't stack duplicates.
-        try:
-            from recurring_events import fetch_recurring_events
-            recurring = fetch_recurring_events(cfg, report.week_of)
-            venues = {v.get("venue") for v in
-                      (cfg.get("events") or {}).get("recurring") or []}
-            kept = [e for e in (report.events or []) if e.venue not in venues]
-            report.events = kept + recurring
-        except Exception as e:
-            print(f"  ! Recurring events failed ({e}) — skipping", file=sys.stderr)
+        # The events section is rebuilt, not carried over: the Roxy lineup turns
+        # over weekly, and re-rendering used to republish whatever films were
+        # fetched the last time a full run happened. Deals keep the week they
+        # were extracted for, so events are fetched for that same week — the
+        # page header, the deals, and the lineup all agree.
+        if report.week_of != monday_of_this_week():
+            print(f"  ! report.json is for week_of {report.week_of}, not this "
+                  f"week ({monday_of_this_week()}) — re-rendering it as-is; "
+                  f"run a full job to refresh the deals.", file=sys.stderr)
+        refresh_events(report, cfg, report.week_of, live=True)
         path = render(report, draft_dir)
         print(f"Re-rendered {src} → {path}")
         print("Review it, then run:  python run.py --publish")
@@ -231,32 +280,9 @@ def main() -> int:
                 print(f"  ! CHEF'STORE fetch failed ({e}) — skipping", file=sys.stderr)
 
     # Events page: this week's local lineup (Wed→Wed). The Roxy is fetched from
-    # its API and AI-tagged for kid-friendly / special events, so it's skipped on
-    # offline/test paths.
-    if not (args.sample or args.url or args.images):
-        try:
-            from roxy_fetch import fetch_roxy_events
-            from events_enrich import enrich_events
-            print("  • The Roxy: fetching this week's lineup…")
-            report.events = fetch_roxy_events(week_of)
-            report.week_pick = enrich_events(report.events, week_of)
-            print(f"    → {len(report.events)} film(s) this week")
-        except Exception as e:                     # events are additive, never fatal
-            print(f"  ! Roxy events fetch failed ({e}) — skipping", file=sys.stderr)
-
-    # Venues with no fetchable calendar: generate their published recurring
-    # schedule from config. No network and no AI, so this runs on every path —
-    # and deliberately after enrich_events, which only tags the fetched lineup.
-    try:
-        from recurring_events import fetch_recurring_events
-        recurring = fetch_recurring_events(cfg, week_of)
-        if recurring:
-            report.events = (report.events or []) + recurring
-            venues = {e.venue for e in recurring}
-            print(f"  • Recurring: {len(recurring)} event(s) from "
-                  f"{', '.join(sorted(venues))}")
-    except Exception as e:                         # events are additive, never fatal
-        print(f"  ! Recurring events failed ({e}) — skipping", file=sys.stderr)
+    # its API and AI-tagged, so it's skipped on the offline/test paths.
+    refresh_events(report, cfg, week_of,
+                   live=not (args.sample or args.url or args.images))
 
     path = render(report, draft_dir)
     print(f"Draft rendered → {path}")

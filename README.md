@@ -387,9 +387,11 @@ docker compose run --rm pipeline python run.py --publish
 
 After this, `https://<domain>` serves the rendered site.
 
-**Shipping a UI/template tweak** (no new ad data, no AI tokens): after
+**Shipping a UI/template tweak** (no new ad data, no vision tokens): after
 `git pull` + `docker compose build pipeline`, re-render the live data through
-the updated templates, then publish:
+the updated templates, then publish. The deals are reused exactly as published;
+the events section is re-fetched, so the Roxy lineup can't go stale behind a
+run of template tweaks:
 
 ```bash
 docker compose run --rm pipeline python run.py --rerender

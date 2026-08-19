@@ -250,7 +250,11 @@ git pull
 docker compose build pipeline    # only if pipeline/ changed
 docker compose restart caddy     # only if Caddyfile changed
 ```
-## 8b Code Updates No Ai
+## 8b Code updates without re-reading the ads
+
+Reuses the published deals verbatim (no email fetch, no vision pass) and
+re-fetches the events section so the Roxy lineup stays current.
+
 ```
 cd /srv/wum && git pull && docker compose build pipeline
 docker compose run --rm pipeline python run.py --rerender
