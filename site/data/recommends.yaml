@@ -177,20 +177,33 @@ businesses:
       - label: Instagram
         url: https://www.instagram.com/theroxy406/
 
-  - name: Miller Creek Cafe
-    category: Restaurants
+  - name: The Runner's Edge
+    category: Running & Outdoor Gear
     what: >-
-      Neighborhood cafe in the Miller Creek area, open daily from breakfast
-      hours through dinner. Burgers and classic cafe fare, with eight fresh
-      draft beers from Bitter Root Brewing on tap and plenty of non-alcoholic
-      options.
+      Downtown running store, locally owned by the Brooker family since 2001
+      and celebrating 25 years. Road and trail shoes, track and cross country
+      spikes, apparel, and the small stuff that matters — socks, insoles,
+      hydration, nutrition. Every fitting starts with an in-store gait
+      analysis and a conversation about your running history and injuries.
+      They also put on a full calendar of local races, from the Snowbowl 15K
+      and Blue Mountain 30K to the Runner's Edge Trail Series.
     why: >-
-      A great local small business serving the Miller Creek community — the
-      kind of spot every neighborhood wishes it had. Big win for families,
-      too: the kids menu is genuinely good, not an afterthought.
-    website: https://millercreekcafe.com/
-    phone: (406) 251-3656
-    address: 4915 Lower Miller Creek Road
+      We made our first purchase here this week and walked out impressed. The
+      store was slammed, and the staff still made sure every single person in
+      there got helped — nobody was left standing around. They know their
+      stuff, they take the time, and they don't rush you toward the most
+      expensive box on the wall. Their email list deserves a mention too:
+      they send when they actually have something to say, which is rarer than
+      it should be. Not just us, either — they were named the best running
+      store in America in 2019, out of more than 15,000 nominations.
+    website: https://runnersedgemt.com/
+    phone: (406) 728-9297
+    address: 304 N Higgins Ave, Missoula
+    socials:
+      - label: Instagram
+        url: https://www.instagram.com/runnersedgemt/
+      - label: Facebook
+        url: https://www.facebook.com/RunnersEdgeMT/
 
   - name: Jensen Dental
     category: Health & Medical
