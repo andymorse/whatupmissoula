@@ -1,7 +1,13 @@
 # Manual flyer drops
 
 Hand-uploaded ad files (PDFs or images) for stores with **no scrapeable ad
-source** — currently Albertsons (store-gated SPA, but you can download a PDF).
+source**.
+
+No store needs this right now — Albertsons was the last one, and it's now
+fetched automatically from Flipp (`pipeline/flipp_fetch.py`). The folder stays
+as the fallback: if a fetcher breaks mid-week, dropping the PDF in here still
+gets the ad on the site, and it's the quickest way to onboard a new store with
+no feed at all.
 
 ## How it works
 

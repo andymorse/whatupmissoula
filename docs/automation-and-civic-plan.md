@@ -14,8 +14,11 @@ Goal: the weekly grocery run happens without the owner touching a terminal.
 - [ ] Cron the weekly run for **late Wednesday morning** (ads land Wed AM).
       Runs the pipeline container with the existing command; produces a DRAFT
       only, exactly as today.
-- [ ] Albertsons: agent (or scripted fetch) drops the PDF into
-      `drops/Albertsons/` before the run, replacing the manual upload.
+- [x] Albertsons: **done 2026-08-19.** No agent needed in the end — the ad is
+      on Flipp, whose backend is public and keyed by zip, so `flipp_fetch.py`
+      rebuilds the ad's pages from Flipp's tile CDN every run (`kind: flipp`).
+      The manual upload is retired; `drops/` stays as a fallback. This was the
+      last store that needed a human in the loop before a run.
 - [ ] Keep the draft→publish gate intact. Automation must NOT publish
       unreviewed output — Phase 2 is what makes hands-off publishing safe.
 

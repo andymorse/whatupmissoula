@@ -22,8 +22,6 @@ hold. Link to an issue or a doc if there's more detail.
   Schedule for **Wednesday morning** — that's when the store ads land in the
   mailbox. Currently run by hand on Wednesday. Phase 1 of
   [the automation + civic plan](docs/automation-and-civic-plan.md).
-- [ ] **Albertsons auto-fetch** — have an agent drop the PDF into
-  `drops/Albertsons/` before the run, replacing the manual upload.
 - [ ] **Email review + approval** — pipeline emails the draft; reply `ok 1 2 4`
   to publish. No web backend needed (reuses the existing IMAP plumbing). This
   is what makes hands-off automation safe. Phase 2 of the plan above.
@@ -65,6 +63,9 @@ hold. Link to an issue or a doc if there's more detail.
 ## Shipped
 *Newest first.*
 
+- [x] Albertsons auto-fetch — the ad is pulled from Flipp every run
+  (`kind: flipp`), replacing the manual PDF upload. Phase 1 of the automation
+  plan; no store needs a manual drop any more.
 - [x] Two-tier badging — Editor's Pick (gold) + WUM Pick (navy).
 - [x] Per-location deal labeling for multi-store chains (Yoke's, Super 1).
 - [x] Top Steals grid with seasonal weighting.

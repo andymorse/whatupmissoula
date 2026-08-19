@@ -126,7 +126,17 @@ stores:
     kind: "web_pdf"
     weekly_ad_url: "https://www.goodfoodstore.com/sales-flyer/"
   - name: "Albertsons"
+    # No usable source of its own — albertsons.com/weeklyad is a store-gated SPA
+    # that never settles headless. But Albertsons publishes through Flipp, whose
+    # backend is public and keyed by zip, so we pull the ad's page images from
+    # there every run (flipp_fetch.py). This replaced the manual PDF upload to
+    # drops/Albertsons/; that folder still works as a fallback if Flipp changes.
+    # Senders stay only so their mail still classifies.
     senders: ["*.albertsons.com"]
+    kind: "flipp"
+    flipp_postal_code: "59801"      # Missoula
+    flipp_merchant: "Albertsons"
+    flipp_flyer_name: "Weekly Ad"   # not the month-long "Big Book of Savings"
   - name: "Orange Street Food Farm"   # Orange St + Reserve St; one chain ad
     # No email — full-page JPG on their ShopHero storefront. The base URL renders
     # the current ad, so there's no id to seed or scan (ShopHero went client-side

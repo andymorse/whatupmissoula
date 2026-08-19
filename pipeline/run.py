@@ -129,12 +129,17 @@ def main() -> int:
         # email, scraped every run like web_pdf. See web_ad_fetch.py.
         web_ad_stores = [s for s in cfg.get("stores", []) if s.get("kind") == "web_ad"]
         web_ad_names = {s["name"] for s in web_ad_stores}
+        # Stores whose ad lives on Flipp, the circular network (Albertsons) —
+        # public backend keyed by zip, no email. See flipp_fetch.py.
+        flipp_stores = [s for s in cfg.get("stores", []) if s.get("kind") == "flipp"]
+        flipp_names = {s["name"] for s in flipp_stores}
 
         emails = fetch_flyer_emails(cfg)
         print(f"Found {len(emails)} flyer email(s).")
         chefstore_emails = [e for e in emails if e.store == "CHEF'STORE"]
         flyer_emails = [e for e in emails if e.store != "CHEF'STORE"
-                        and e.store not in web_pdf_names and e.store not in web_ad_names]
+                        and e.store not in web_pdf_names and e.store not in web_ad_names
+                        and e.store not in flipp_names]
 
         flyers = []
         for fe in flyer_emails:
@@ -169,7 +174,19 @@ def main() -> int:
                 except Exception as e:             # a down site shouldn't sink the run
                     print(f"  ! {s['name']}: web-ad fetch failed ({e}) — skipping", file=sys.stderr)
 
-        # Manual drops (Albertsons etc.): files placed in drops/<Store>/ are
+        # Flipp stores (Albertsons): the ad's page images are rebuilt from
+        # Flipp's tile CDN every run, independent of email.
+        if flipp_stores:
+            from flipp_fetch import fetch_flipp_flyers
+            for s in flipp_stores:
+                print(f"  • {s['name']}: fetching Flipp weekly ad…")
+                try:
+                    flyers += fetch_flipp_flyers(s, cfg)
+                except Exception as e:             # a down CDN shouldn't sink the run
+                    print(f"  ! {s['name']}: Flipp fetch failed ({e}) — skipping",
+                          file=sys.stderr)
+
+        # Manual drops (any store with no feed): files placed in drops/<Store>/ are
         # merged into this run; subfolder name is the store hint. Skip anything
         # already moved under the _archive subfolder.
         if drops_dir.exists():
