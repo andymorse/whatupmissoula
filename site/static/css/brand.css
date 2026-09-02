@@ -1,5 +1,8 @@
 /* What's Up Missoula — built on the Fractional design system.
-   Tokens lifted from the Fractional IT brand guide; only the name differs. */
+   Tokens lifted from the Fractional IT brand guide; only the name differs.
+   Type: Oswald for headings / nav / stat numbers (sentence case, never
+   uppercase — 600 reads like the old 800), Nunito for body, eyebrows and
+   small caps tags. */
 
 :root {
   --navy:       #025492;
@@ -13,6 +16,9 @@
   --gray-400:   #9ca3af;
   --gray-600:   #4b5563;
   --white:      #ffffff;
+
+  --head:       'Oswald', sans-serif;
+  --body:       'Nunito', sans-serif;
 
   --radius:     12px;
   --radius-lg:  20px;
@@ -29,14 +35,19 @@
 [hidden] { display: none !important; }
 
 body {
-  font-family: 'Open Sans', sans-serif;
+  font-family: var(--body);
+  -webkit-font-smoothing: antialiased;
   font-size: 17px;
   line-height: 1.7;
   color: var(--gray-600);
   background: var(--gray-100);
 }
 
-h1, h2, h3, .label, nav, .btn { font-family: 'Montserrat', sans-serif; }
+h1, h2, h3, h4, nav, .btn { font-family: var(--head); font-weight: 600; letter-spacing: 0; }
+h3, h4 { font-weight: 500; }
+/* Nunito 800 + tracking is the brand's ALL-CAPS voice — eyebrows, badges, tags.
+   Headings never get text-transform. */
+.label, .caps { font-family: var(--body); font-weight: 800; text-transform: uppercase; }
 
 .container { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
 
@@ -53,33 +64,34 @@ h1, h2, h3, .label, nav, .btn { font-family: 'Montserrat', sans-serif; }
 .hero .topbar .brand { margin-bottom: 0; }
 .sitenav { display: flex; gap: 6px; flex-shrink: 0; }
 .sitenav a {
-  font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 700;
-  letter-spacing: 0.5px; color: rgba(255,255,255,0.82); text-decoration: none;
-  padding: 8px 16px; border-radius: 999px; transition: all 0.2s ease;
+  font-family: var(--head); font-size: 15px; font-weight: 500;
+  letter-spacing: 0.6px; color: rgba(255,255,255,0.82); text-decoration: none;
+  padding: 7px 16px; border-radius: 6px; transition: all 0.2s ease;
 }
-.sitenav a:hover { color: var(--white); background: rgba(255,255,255,0.12); }
+.sitenav a:hover { color: var(--gold); background: rgba(255,255,255,0.08); }
 .sitenav a.active { color: var(--navy-deep); background: var(--gold); }
 .hero .brand { display: flex; align-items: center; gap: 14px; margin-bottom: 40px; }
 .hero .brand img { height: 40px; }
 .hero .brand span {
-  font-weight: 800; font-size: 18px; letter-spacing: -0.5px; color: var(--white);
+  font-family: var(--head); font-weight: 600; font-size: 22px;
+  letter-spacing: 0.3px; color: var(--white);
 }
 .label {
-  font-size: 11px; font-weight: 700; letter-spacing: 2.5px;
-  text-transform: uppercase; color: var(--gold); margin-bottom: 12px;
+  font-size: 11px; letter-spacing: 2.5px;
+  color: var(--gold); margin-bottom: 12px;
   display: inline-block;
 }
 .hero h1 {
-  font-size: clamp(32px, 5.2vw, 52px); font-weight: 800;
-  letter-spacing: -1.5px; line-height: 1.05; margin-bottom: 10px;
+  font-size: clamp(38px, 6vw, 60px); font-weight: 600;
+  letter-spacing: 0.2px; line-height: 1.06; margin-bottom: 10px;
 }
 .hero h1 em { color: var(--gold); font-style: normal; }
 .hero .sub { color: rgba(255,255,255,0.72); max-width: 640px; }
 .refresh-note {
   display: inline-flex; align-items: center; gap: 8px;
   margin-top: 16px;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 12px; font-weight: 700; letter-spacing: 1.5px;
+  font-family: var(--body);
+  font-size: 12px; font-weight: 800; letter-spacing: 1.5px;
   text-transform: uppercase; color: rgba(255,255,255,0.85);
   background: rgba(255,255,255,0.08);
   border: 1px solid rgba(255,255,255,0.15);
@@ -108,7 +120,7 @@ h1, h2, h3, .label, nav, .btn { font-family: 'Montserrat', sans-serif; }
 .dealsearch-input {
   flex: 1; min-width: 0;
   border: 0; outline: 0; background: transparent;
-  font-family: 'Open Sans', sans-serif; font-size: 17px;
+  font-family: var(--body); font-size: 17px;
   color: var(--navy-deep); padding: 16px 14px;
 }
 .dealsearch-input::placeholder { color: var(--gray-400); }
@@ -123,8 +135,8 @@ h1, h2, h3, .label, nav, .btn { font-family: 'Montserrat', sans-serif; }
 .dealsearch-clear:hover { background: var(--gray-400); color: var(--white); }
 .dealsearch-status {
   margin-top: 14px;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 13px; font-weight: 700; letter-spacing: 0.5px;
+  font-family: var(--body);
+  font-size: 13px; font-weight: 800; letter-spacing: 0.5px;
   color: var(--white);
 }
 
@@ -140,12 +152,12 @@ h1, h2, h3, .label, nav, .btn { font-family: 'Montserrat', sans-serif; }
   border-left: 6px solid var(--gold);
 }
 .best .label { color: var(--gold-dark); }
-.best h2 { font-size: clamp(26px, 3.8vw, 38px); color: var(--navy-deep); font-weight: 700; }
+.best h2 { font-size: clamp(28px, 3.8vw, 42px); color: var(--navy-deep); line-height: 1.14; }
 .best p { margin-top: 8px; color: var(--gray-600); }
 
 /* --- Sections --- */
 .section { padding: 64px 0; }
-.section h2 { font-size: clamp(24px, 3.4vw, 34px); color: var(--navy-deep); margin-bottom: 6px; }
+.section h2 { font-size: clamp(28px, 3.8vw, 42px); color: var(--navy-deep); line-height: 1.14; margin-bottom: 6px; }
 .section .label { color: var(--gold-dark); }
 
 /* --- Top steals strip --- */
@@ -157,13 +169,13 @@ h1, h2, h3, .label, nav, .btn { font-family: 'Montserrat', sans-serif; }
   box-shadow: var(--shadow-sm); transition: all 0.3s ease;
 }
 .steal:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
-.steal .store { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--navy); }
+.steal .store { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--navy); }
 .steal .item { color: var(--navy-deep); font-weight: 600; margin: 4px 0; }
-.steal .price { font-family: 'Montserrat'; font-weight: 800; font-size: 24px; color: var(--gold-dark); }
+.steal .price { font-family: var(--head); font-weight: 600; font-size: 30px; line-height: 1.1; color: var(--gold-dark); }
 .steal .unit { font-size: 13px; color: var(--gray-400); }
-.steal .steal-dates { font-size: 12px; font-weight: 600; color: var(--gold-dark); margin-top: 6px; }
+.steal .steal-dates { font-size: 12px; font-weight: 700; color: var(--gold-dark); margin-top: 6px; }
 .steal-pick { border-top: 3px solid var(--gold); }
-.steal-rec { border-top: 3px solid rgba(28,46,89,0.28); }
+.steal-rec { border-top: 3px solid rgba(2,84,146,0.28); }
 .order-note { font-size: 14px; color: var(--gray-600); margin-top: 6px; max-width: 720px; }
 .disclaimer { font-size: 13px; color: var(--gray-400); margin-top: 8px; max-width: 720px; }
 .disclaimer strong { color: var(--gold-dark); font-weight: 700; }
@@ -178,8 +190,8 @@ h1, h2, h3, .label, nav, .btn { font-family: 'Montserrat', sans-serif; }
 }
 .steal .wum-rec {
   display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: 1px;
-  text-transform: uppercase; color: var(--navy-deep); background: rgba(28,46,89,0.08);
-  border: 1px solid rgba(28,46,89,0.18);
+  text-transform: uppercase; color: var(--navy-deep); background: rgba(2,84,146,0.08);
+  border: 1px solid rgba(2,84,146,0.18);
   padding: 2px 8px; border-radius: 100px; margin-bottom: 8px;
 }
 
@@ -193,13 +205,13 @@ h1, h2, h3, .label, nav, .btn { font-family: 'Montserrat', sans-serif; }
 /* Tag filter chips in the hero — show the week's tags, click to filter. */
 .tagbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
 .tagbar-label {
-  font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 700;
+  font-family: var(--body); font-size: 11px; font-weight: 800;
   letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.55);
   margin-right: 2px;
 }
 .tagchip {
-  font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 700;
-  letter-spacing: 0.3px; color: var(--white);
+  font-family: var(--body); font-size: 12px; font-weight: 800;
+  letter-spacing: 0.6px; color: var(--white);
   background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.22);
   padding: 6px 14px; border-radius: 999px; cursor: pointer; transition: all 0.2s ease;
 }
@@ -230,18 +242,18 @@ h1, h2, h3, .label, nav, .btn { font-family: 'Montserrat', sans-serif; }
 .biz:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
 .biz-cat {
   display: inline-block;
-  font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 700;
+  font-family: var(--body); font-size: 11px; font-weight: 800;
   letter-spacing: 1.5px; text-transform: uppercase;
   color: var(--navy); background: rgba(2,84,146,0.08);
   padding: 4px 12px; border-radius: 999px; margin-bottom: 12px;
 }
-.biz-name { font-size: 24px; font-weight: 700; color: var(--navy-deep); line-height: 1.2; margin-bottom: 8px; }
+.biz-name { font-family: var(--head); font-size: 24px; font-weight: 500; color: var(--navy-deep); line-height: 1.25; margin-bottom: 8px; }
 .biz-name a { color: inherit; text-decoration: none; }
 .biz-name a:hover { color: var(--navy); }
 .biz-what { font-size: 15px; }
 .biz-why { border-left: 3px solid var(--gold); padding-left: 14px; margin-top: 14px; }
 .biz-why-label {
-  font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 700;
+  font-family: var(--body); font-size: 11px; font-weight: 800;
   letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold-dark);
 }
 .biz-why p { font-size: 15px; margin-top: 4px; }
@@ -270,19 +282,19 @@ h1, h2, h3, .label, nav, .btn { font-family: 'Montserrat', sans-serif; }
 .event-body { padding: 20px 24px 24px; }
 .event-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
 .ev-tag {
-  font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 800;
+  font-family: var(--body); font-size: 10px; font-weight: 800;
   letter-spacing: 1px; text-transform: uppercase; padding: 3px 10px; border-radius: 100px;
 }
 .ev-tag.kid { background: #1f8a4c; color: var(--white); }        /* family — green pops against navy/gold */
 .ev-tag.special { background: var(--navy); color: var(--white); }
 .ev-tag.plain { background: var(--gray-100); color: var(--gray-600); }
-.event-title { font-size: 21px; font-weight: 700; color: var(--navy-deep); line-height: 1.2; margin-bottom: 4px; }
+.event-title { font-family: var(--head); font-size: 22px; font-weight: 500; color: var(--navy-deep); line-height: 1.25; margin-bottom: 4px; }
 .event-title a { color: inherit; text-decoration: none; }
 .event-title a:hover { color: var(--navy); }
 .event-meta { font-size: 13px; color: var(--gray-400); }
 .event-series {
-  font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 700;
-  letter-spacing: 0.5px; text-transform: uppercase; color: var(--gold-dark); margin-top: 6px;
+  font-family: var(--body); font-size: 11px; font-weight: 800;
+  letter-spacing: 1px; text-transform: uppercase; color: var(--gold-dark); margin-top: 6px;
 }
 .event-times { margin-top: 14px; font-size: 14px; color: var(--gray-600); line-height: 1.7; }
 .event-times .day { font-weight: 700; color: var(--navy-deep); }
@@ -292,14 +304,14 @@ h1, h2, h3, .label, nav, .btn { font-family: 'Montserrat', sans-serif; }
    both pages group the same way: one card per venue / per store. --- */
 .venue-block { margin-top: 32px; }
 .venue-block h3 {
-  font-size: 24px; font-weight: 700; color: var(--navy-deep);
+  font-size: 24px; color: var(--navy-deep);
   display: flex; align-items: center; gap: 10px;
   padding-bottom: 10px; border-bottom: 2px solid var(--gray-100);
 }
 .venue-count {
-  font-family: 'Montserrat'; font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
-  background: rgba(28,46,89,0.08); color: var(--navy-deep);
-  border: 1px solid rgba(28,46,89,0.18);
+  font-family: var(--body); font-size: 11px; font-weight: 800; letter-spacing: 0.5px;
+  background: rgba(2,84,146,0.08); color: var(--navy-deep);
+  border: 1px solid rgba(2,84,146,0.18);
   border-radius: 100px; padding: 2px 9px;
 }
 .venue-note { font-size: 13px; color: var(--gray-400); font-style: italic; margin: 10px 0 0; }
@@ -307,16 +319,16 @@ h1, h2, h3, .label, nav, .btn { font-family: 'Montserrat', sans-serif; }
 
 /* --- Store blocks --- */
 .store-block { background: var(--white); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); padding: 28px 32px; margin-bottom: 22px; }
-.store-block h3 { font-size: 24px; font-weight: 700; color: var(--navy-deep); }
+.store-block h3 { font-size: 24px; color: var(--navy-deep); }
 .store-block .dates { font-size: 13px; color: var(--gray-400); margin-bottom: 16px; }
 .store-block .store-note { font-size: 13px; color: var(--gray-400); margin: -8px 0 16px; font-style: italic; }
-.store-kind { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+.store-kind { display: inline-block; font-family: var(--body); font-size: 11px; font-weight: 800; letter-spacing: 1px;
   text-transform: uppercase; border-radius: 100px; padding: 3px 10px; margin-left: 10px; vertical-align: 4px; }
-.store-kind.bulk { background: rgba(28,46,89,0.08); color: var(--navy-deep); border: 1px solid rgba(28,46,89,0.18); }
+.store-kind.bulk { background: rgba(2,84,146,0.08); color: var(--navy-deep); border: 1px solid rgba(2,84,146,0.18); }
 
 table.deals { width: 100%; border-collapse: collapse; }
 table.deals th {
-  text-align: left; font-family: 'Montserrat'; font-size: 10px; font-weight: 700;
+  text-align: left; font-family: var(--body); font-size: 10px; font-weight: 800;
   letter-spacing: 1.5px; text-transform: uppercase; color: var(--gray-400);
   padding: 8px 10px; border-bottom: 2px solid var(--gray-100);
 }
@@ -332,7 +344,7 @@ table.deals tr.watch td { background: rgba(255,201,0,0.06); }
 .watch-badge { display: inline-block; font-size: 11px; font-weight: 700;
   border-radius: 100px; padding: 1px 8px; margin-left: 6px; vertical-align: 2px; }
 .watch-mine { background: var(--gold-dark); color: var(--white); }
-.watch-wum { background: rgba(28,46,89,0.08); color: var(--navy-deep); border: 1px solid rgba(28,46,89,0.18); }
+.watch-wum { background: rgba(2,84,146,0.08); color: var(--navy-deep); border: 1px solid rgba(2,84,146,0.18); }
 
 /* --- Footer --- */
 footer { background: var(--navy-deep); color: rgba(255,255,255,0.72); padding: 40px 0; font-size: 13px; line-height: 1.6; }
@@ -345,8 +357,8 @@ footer p:last-child { margin-bottom: 0; }
    copy below without adding a whole second footer band. */
 .footerlinks { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.12); }
 .footerlinks h2 {
-  font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 700;
-  letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.55);
+  font-family: var(--body); font-size: 11px; font-weight: 800;
+  letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.55);
   margin-bottom: 12px;
 }
 .footerlinks ul { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
@@ -369,8 +381,8 @@ footer p:last-child { margin-bottom: 0; }
   .topbar { flex-wrap: wrap; margin-bottom: 24px; }
   .hero .brand { gap: 10px; }
   .hero .brand img { height: 32px; }
-  .hero .brand span { font-size: 16px; white-space: nowrap; }
-  .sitenav a { padding: 7px 12px; font-size: 12px; }
+  .hero .brand span { font-size: 19px; white-space: nowrap; }
+  .sitenav a { padding: 6px 12px; font-size: 14px; }
 }
 
 @media (max-width: 480px) {
