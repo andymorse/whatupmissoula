@@ -53,6 +53,9 @@ def fetch_flyer_emails(cfg: dict) -> list[FlyerEmail]:
     default_days = int(ecfg.get("lookback_days", 8))
     period = {s["name"]: int(s.get("ad_period_days", default_days))
               for s in cfg.get("stores", [])}
+    # Stores whose locations all get the same ad (Yoke's): keep one email per
+    # store, not one per To: alias, so the ad is read and shown once.
+    shared = {s["name"].lower() for s in cfg.get("stores", []) if s.get("shared_ad")}
     max_days = max([default_days, *period.values()])
     since = (datetime.now() - timedelta(days=max_days)).strftime("%d-%b-%Y")
 
@@ -61,7 +64,8 @@ def fetch_flyer_emails(cfg: dict) -> list[FlyerEmail]:
     # arrived ad cleanly supersedes the prior one (no stale double-render). The
     # To: address stays in the key because some senders (Yoke's via Mailchimp)
     # reuse one sender+subject for every location and encode the store in a
-    # per-recipient redirect — two aliases (one per location) must keep both.
+    # per-recipient redirect — two aliases (one per location) must keep both,
+    # unless the store is marked shared_ad (same ad everywhere).
     best: dict[tuple[str, str], tuple[datetime, FlyerEmail]] = {}
     M = imaplib.IMAP4_SSL(host, int(env("IMAP_PORT", "993")))
     try:
@@ -82,7 +86,7 @@ def fetch_flyer_emails(cfg: dict) -> list[FlyerEmail]:
             if _age_days(sent) > period.get(store, default_days):
                 continue                          # older than this store's ad cycle
             to_addr = email.utils.parseaddr(msg.get("To", ""))[1].lower()
-            key = (store.lower(), to_addr)
+            key = (store.lower(), "" if store.lower() in shared else to_addr)
             if key in best and best[key][0] >= sent:
                 continue                          # already have an equal-or-newer one
             html = _html_body(msg)

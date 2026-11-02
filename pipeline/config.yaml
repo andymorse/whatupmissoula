@@ -149,8 +149,11 @@ stores:
   #   # URM (Super 1's parent) sends marketing via Constant Contact's ccsend.com.
   #   # Exact address — *.ccsend.com would match any Constant Contact customer.
   #   senders: ["super1-advertising@urmstores.ccsend.com"]
-  - name: "Yokes"           # two Missoula locations; AI reads location from ad
+  - name: "Yokes"           # Broadway + Reserve; one ad covers both
     senders: ["no-reply@yokesfreshmarkets.com"]
+    # Each location's alias gets its own copy of the identical ad. Keep just
+    # one so Yoke's shows once on the site (and costs one vision pass).
+    shared_ad: true
   - name: "CHEF'STORE"      # Missoula (US Foods bulk/wholesale) — store #505
     # Email links to chefstore.com/specials/, not a flyer. We bypass vision
     # and pull deals from the biweekly hotsheet's embedded JSON — see

@@ -23,9 +23,10 @@ what actually gets fetched, and a store missing from here gets wrongly flagged a
 out of scope.
 
 Weekly-ad emails
-- Yoke's Fresh Market (two Missoula locations: Broadway and Reserve) — one
-  sender covers both, so read the location off the ad itself and label every
-  deal with it.
+- Yoke's Fresh Market (two Missoula locations: Broadway and Reserve) — both
+  run the same ad, and we read it once. Report it as a single store named
+  "Yoke's Fresh Market — Broadway & Reserve", even if the copy you're given
+  names only one location.
 - CHEF'STORE Missoula (US Foods bulk/wholesale) — biweekly hotsheet, pulled
   from structured JSON rather than vision. See pipeline/chefstore_fetch.py.
 - Super1 Stevensville and Super1 Hamilton — PARKED (out of town); leave them
@@ -38,7 +39,7 @@ Web flyer (rendered from the store's weekly-ad page)
   See pipeline/flipp_fetch.py.
 - Orange Street Food Farm (Orange St and Reserve St) — one chain ad, scraped
   from their ShopHero storefront (https://orangestreetfoodfarm.com/weekly-ads);
-  the live ad id is resolved by date each run. See pipeline/web_ad_fetch.py.
+  the base page always shows the current ad. See pipeline/web_ad_fetch.py.
 - Costco (note: membership required; flag deals as members-only)
 
 Not covered — no weekly ad

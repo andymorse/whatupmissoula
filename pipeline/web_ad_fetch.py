@@ -57,9 +57,14 @@ except ImportError:
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
 
-# "Aug 12, 2026 - Aug 18, 2026" — the ad's printed valid range.
+# "Aug 12, 2026 - Aug 18, 2026" — the ad's printed valid range (through Oct 2026).
 _DATE_RANGE_RE = re.compile(
     r"([A-Z][a-z]{2} \d{1,2}, \d{4})\s*-\s*([A-Z][a-z]{2} \d{1,2}, \d{4})"
+)
+# "Weekly ad 10-28 - 11-3 2026" — the store-typed ad title ShopHero shows since
+# late Oct 2026, replacing the range above. One trailing year for both ends.
+_NUMERIC_RANGE_RE = re.compile(
+    r"\b(\d{1,2})[-/](\d{1,2})\s*-\s*(\d{1,2})[-/](\d{1,2}),?\s+(\d{4})\b"
 )
 # Full URL of an ad page image: …/ad_<adId>_page_<n>_<hash>.jpg
 _AD_IMG_RE = re.compile(
@@ -81,10 +86,14 @@ def fetch_web_ad_flyers(store_cfg: dict, cfg: dict) -> list[FlyerImage]:
     ad = _read_ad(_render_dom(base_url, wait_ms))
     if not ad:
         raise RuntimeError(
-            f"{name}: rendered {base_url} but found no ad date range or page images. "
+            f"{name}: rendered {base_url} but found no ad page images. "
             "The page may have changed again, or Chromium was blocked."
         )
-    if not (ad["from"] <= date.today() <= ad["through"]):
+    if ad["from"] is None:
+        # The images are what matter; vision reads valid_from/through off the
+        # flyer itself. Don't drop a real ad because the page title changed.
+        print(f"  ! {name}: no date range found on the page — using the ad anyway")
+    elif not (ad["from"] <= date.today() <= ad["through"]):
         # Not fatal — the store sometimes posts the next week's ad early, and
         # showing the ad they're actually publishing beats showing nothing.
         print(f"  ! {name}: ad range {ad['from']}..{ad['through']} doesn't cover today "
@@ -103,19 +112,38 @@ def fetch_web_ad_flyers(store_cfg: dict, cfg: dict) -> list[FlyerImage]:
 
 
 def _read_ad(html: str) -> dict | None:
-    """Parse a rendered ad page into its date range + image urls, or None."""
-    rng = _DATE_RANGE_RE.search(html)
-    if not rng:
-        return None
+    """Parse a rendered ad page into its date range + image urls, or None.
+
+    None only when there are no ad images. A missing/unparseable date range
+    leaves from/through as None — the caller decides how much that matters.
+    """
     imgs = _ad_image_urls(html)
     if not imgs:
         return None
-    try:
-        valid_from = datetime.strptime(rng.group(1), "%b %d, %Y").date()
-        valid_through = datetime.strptime(rng.group(2), "%b %d, %Y").date()
-    except ValueError:
-        return None
+    valid_from, valid_through = _date_range(html)
     return {"from": valid_from, "through": valid_through, "images": imgs}
+
+
+def _date_range(html: str) -> tuple[date | None, date | None]:
+    """The ad's printed valid range in either format ShopHero has used."""
+    m = _DATE_RANGE_RE.search(html)
+    if m:
+        try:
+            return (datetime.strptime(m.group(1), "%b %d, %Y").date(),
+                    datetime.strptime(m.group(2), "%b %d, %Y").date())
+        except ValueError:
+            pass
+    m = _NUMERIC_RANGE_RE.search(html)
+    if m:
+        m1, d1, m2, d2, year = (int(g) for g in m.groups())
+        try:
+            through = date(year, m2, d2)
+            # "12-30 - 1-5 2027": the start is in the previous year.
+            start = date(year - 1 if m1 > m2 else year, m1, d1)
+            return start, through
+        except ValueError:
+            pass
+    return None, None
 
 
 def _render_dom(url: str, wait_ms: int, chromium: str = "chromium") -> str:
@@ -186,7 +214,7 @@ if __name__ == "__main__":
             print(f"  Ad:   render failed — {type(e).__name__}: {e}")
             continue
         if ad:
-            print(f"  Ad:   {ad['from']} → {ad['through']}  "
+            print(f"  Ad:   {ad['from'] or '?'} → {ad['through'] or '?'}  "
                   f"({len(ad['images'])} page image(s))")
             for u in ad["images"]:
                 print(f"        {u}")

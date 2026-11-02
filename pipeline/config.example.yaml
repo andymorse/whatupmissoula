@@ -103,6 +103,9 @@ stores:
     # location) and `email_fetch.py` keeps the most recent email per (store,
     # To:) — the location is in Mailchimp's per-recipient redirect, not the URL.
     senders: ["no-reply@yokesfreshmarkets.com"]
+    # Both locations run the identical ad, so keep one email for the store
+    # (not one per alias) and show Yoke's once.
+    shared_ad: true
   - name: "CHEF'STORE"      # Missoula (US Foods bulk/wholesale) — store #505.
     # Their weekly email links to chefstore.com/specials/, not a flyer image.
     # We bypass vision and pull deals from the biweekly hotsheet's embedded
