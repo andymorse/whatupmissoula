@@ -143,6 +143,14 @@ stores:
     # in Aug 2026; web_ad_fetch.py renders it with headless Chromium).
     kind: "web_ad"
     weekly_ad_url: "https://www.orangestreetfoodfarm.com/weekly-ads"
+  - name: "Pattee Creek Market"   # Missoula's Harvest Foods (URM); shares its ad
+    # with the Lolo and Thompson Falls stores. harvestfoodsnw.com/weekly-ad is
+    # gated behind a store picker, but Harvest Foods publishes through Flipp,
+    # so this is the same zip-keyed path as Albertsons (flipp_fetch.py).
+    kind: "flipp"
+    flipp_postal_code: "59801"      # Missoula
+    flipp_merchant: "Harvest Foods"
+    flipp_flyer_name: "Indexed Weekly"
   # Super1 — PARKED 2026-06-05: Stevensville + Hamilton are out of town, so we
   # skip them for now to save run time + AI tokens. Uncomment to re-enable.
   # - name: "Super1"          # Stevensville + Hamilton; AI reads location from ad

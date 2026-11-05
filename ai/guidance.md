@@ -40,6 +40,10 @@ Web flyer (rendered from the store's weekly-ad page)
 - Orange Street Food Farm (Orange St and Reserve St) — one chain ad, scraped
   from their ShopHero storefront (https://orangestreetfoodfarm.com/weekly-ads);
   the base page always shows the current ad. See pipeline/web_ad_fetch.py.
+- Pattee Creek Market — Missoula's Harvest Foods store, rebuilt from the
+  Flipp backend like Albertsons. The ad is branded "Harvest Foods" and also
+  lists the Lolo and Thompson Falls stores; report it as a single store named
+  "Pattee Creek Market".
 - Costco (note: membership required; flag deals as members-only)
 
 Not covered — no weekly ad
