@@ -42,7 +42,7 @@ def _client_and_model():
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         return None, None
-    model = os.environ.get("ANTHROPIC_MODEL", "claude-opus-5")
+    model = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-5-5")
     return Anthropic(api_key=api_key), model
 
 
@@ -70,13 +70,13 @@ def enrich_events(events: list[Event], week_of: str) -> str:
     )
 
     try:
-        # thinking disabled for the same reason as providers/claude.py: on Claude
-        # Opus 5 it's on by default and shares this budget with the response, and
-        # 2000 tokens leaves no room for both.
+        # thinking off for the same reason as providers/claude.py (it shares this
+        # 2000-token budget with the response). "between_tools" is Sonnet 5.5's
+        # thinking-off setting; "disabled" is a 400 there.
         resp = client.messages.create(
             model=model,
             max_tokens=2000,
-            thinking={"type": "disabled"},
+            thinking={"type": "between_tools"},
             system=SYSTEM,
             messages=[{"role": "user", "content": user}],
         )

@@ -21,11 +21,11 @@ SYSTEM_PREAMBLE = (
     "no prose, no markdown fences. Do not include internal or system XML tags "
     "in your response."
 )
-# That last sentence guards a known Claude Opus 5 behaviour: with thinking
-# disabled the model can occasionally leak internal XML into the visible
-# response, which would break _parse_json. Keep it generic — naming the tags
-# explicitly is measurably less effective, and an instruction telling the model
-# not to think makes the leak *more* likely, not less.
+# That last sentence guards against the model leaking internal XML into the
+# visible response with thinking off (seen on Claude Opus 5), which would break
+# _parse_json. Keep it generic — naming the tags explicitly is measurably less
+# effective, and an instruction telling the model not to think makes the leak
+# *more* likely, not less.
 
 
 class ClaudeProvider(AIProvider):
@@ -36,15 +36,15 @@ class ClaudeProvider(AIProvider):
         if not api_key:
             raise RuntimeError("ANTHROPIC_API_KEY is not set")
         self.client = Anthropic(api_key=api_key)
-        self.model = model or os.environ.get("ANTHROPIC_MODEL", "claude-opus-5")
+        self.model = model or os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-5-5")
         # Output cap. The whole report is one JSON object, so too low a cap
         # truncates it mid-object and parsing fails. It's only a ceiling —
         # you're billed for tokens generated, not for the headroom.
         #
         # Raised 32000 -> 64000 on 2026-08-19: adding Albertsons (kind: flipp)
         # put a sixth store in the report and the response ran past 32K
-        # mid-object. Opus 5's real ceiling is 128000 (confirmed against the
-        # Models API), so there's room left if the store list grows again.
+        # mid-object. The model's real ceiling is 128000 (Opus 5 and Sonnet 5.5
+        # alike), so there's room left if the store list grows again.
         # Values this large REQUIRE the streaming call below — a non-streaming
         # request would hit the SDK's 10-minute timeout before it ever went out.
         self.max_tokens = int(os.environ.get("ANTHROPIC_MAX_TOKENS", "64000"))
@@ -80,21 +80,29 @@ class ClaudeProvider(AIProvider):
         # Streaming accumulates the chunks; get_final_message() returns the same
         # complete Message (content + stop_reason), and prompt caching still
         # applies to the system block.
-        # thinking is DISABLED deliberately. On Claude Opus 5 adaptive thinking is
-        # on by default (unlike Opus 4.7, where omitting it meant no thinking), and
-        # max_tokens caps thinking + response *together* — so leaving it on would
+        # Thinking is OFF deliberately: adaptive thinking is on by default, and
+        # max_tokens caps thinking + response *together* — leaving it on would
         # spend the JSON's output budget on reasoning and truncate the report
-        # mid-object. If extraction quality ever needs the headroom, prefer turning
-        # thinking back on at output_config={"effort": "low"} and raising
-        # max_tokens, rather than nudging the cap with thinking off.
+        # mid-object. Sonnet 5.5 rejects {"type": "disabled"} (400); its
+        # thinking-off setting is "between_tools" (Sonnet 5.5 ONLY — any other
+        # model 400s on it, so change this if ANTHROPIC_MODEL changes). It takes
+        # no other thinking field and needs effort high or below (default high).
+        # If extraction quality ever needs the headroom, prefer adaptive thinking
+        # at output_config={"effort": "low"} with a higher max_tokens.
         with self.client.messages.stream(
             model=self.model,
             max_tokens=self.max_tokens,
-            thinking={"type": "disabled"},
+            thinking={"type": "between_tools"},
             system=system,
             messages=[{"role": "user", "content": content}],
         ) as stream:
             resp = stream.get_final_message()
+
+        # A policy decline is HTTP 200 with no usable content; say so plainly.
+        if resp.stop_reason == "refusal":
+            raise ValueError(
+                f"Claude declined the request (stop_details: {resp.stop_details})."
+            )
 
         # A truncated response is invalid JSON; say so plainly instead of
         # surfacing a confusing "Expecting ',' delimiter" parse error.
