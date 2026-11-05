@@ -1,5 +1,5 @@
 # Offline weekly pipeline dependencies
-anthropic>=0.40.0      # Claude API provider
+anthropic>=0.104.0     # Claude API provider (output_config/effort)
 PyYAML>=6.0            # config
 Jinja2>=3.1            # static site rendering
 pdf2image>=1.17        # PDF flyers -> page images for vision

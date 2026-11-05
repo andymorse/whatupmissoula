@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 
 from providers.base import AIProvider, FlyerImage
 from schema import WeeklyReport
@@ -22,10 +23,18 @@ SYSTEM_PREAMBLE = (
     "in your response."
 )
 # That last sentence guards against the model leaking internal XML into the
-# visible response with thinking off (seen on Claude Opus 5), which would break
-# _parse_json. Keep it generic — naming the tags explicitly is measurably less
+# visible response when thinking is off or light (seen on Claude Opus 5), which
+# would break _parse_json. Keep it generic — naming the tags explicitly is measurably less
 # effective, and an instruction telling the model not to think makes the leak
 # *more* likely, not less.
+
+# $ per million tokens (input, output, cache read) — only for the cost estimate
+# printed after each run. Unknown models just skip the estimate.
+_PRICES = {
+    "claude-sonnet-5-5": (2.00, 10.00, 0.20),
+    "claude-opus-5-5": (4.00, 20.00, 0.20),
+    "claude-opus-5": (5.00, 25.00, 0.50),
+}
 
 
 class ClaudeProvider(AIProvider):
@@ -41,13 +50,15 @@ class ClaudeProvider(AIProvider):
         # truncates it mid-object and parsing fails. It's only a ceiling —
         # you're billed for tokens generated, not for the headroom.
         #
-        # Raised 32000 -> 64000 on 2026-08-19: adding Albertsons (kind: flipp)
-        # put a sixth store in the report and the response ran past 32K
-        # mid-object. The model's real ceiling is 128000 (Opus 5 and Sonnet 5.5
-        # alike), so there's room left if the store list grows again.
+        # Raised 32000 -> 64000 on 2026-08-19 (Albertsons made the report run
+        # past 32K), then -> 128000 (the model's ceiling) on 2026-11-05 when
+        # thinking was turned back on: max_tokens caps thinking + the JSON
+        # *together*, so the reasoning needs room on top of the report.
         # Values this large REQUIRE the streaming call below — a non-streaming
         # request would hit the SDK's 10-minute timeout before it ever went out.
-        self.max_tokens = int(os.environ.get("ANTHROPIC_MAX_TOKENS", "64000"))
+        self.max_tokens = int(os.environ.get("ANTHROPIC_MAX_TOKENS", "128000"))
+        # How hard the model thinks: low | medium | high | xhigh | max.
+        self.effort = os.environ.get("ANTHROPIC_EFFORT", "medium")
 
     def analyze(self, guidance: str, flyers: list[FlyerImage], week_of: str) -> WeeklyReport:
         # System: short preamble + the (cached) guidance doc.
@@ -80,23 +91,21 @@ class ClaudeProvider(AIProvider):
         # Streaming accumulates the chunks; get_final_message() returns the same
         # complete Message (content + stop_reason), and prompt caching still
         # applies to the system block.
-        # Thinking is OFF deliberately: adaptive thinking is on by default, and
-        # max_tokens caps thinking + response *together* — leaving it on would
-        # spend the JSON's output budget on reasoning and truncate the report
-        # mid-object. Sonnet 5.5 rejects {"type": "disabled"} (400); its
-        # thinking-off setting is "between_tools" (Sonnet 5.5 ONLY — any other
-        # model 400s on it, so change this if ANTHROPIC_MODEL changes). It takes
-        # no other thinking field and needs effort high or below (default high).
-        # If extraction quality ever needs the headroom, prefer adaptive thinking
-        # at output_config={"effort": "low"} with a higher max_tokens.
+        # Adaptive thinking at ANTHROPIC_EFFORT (default medium). Thinking was
+        # off through Opus 5, but on Sonnet 5.5 thinking-off ("between_tools")
+        # came back 27% thinner than Opus (43% fewer Rosauers deals, eggs and
+        # butter missed) on 2026-11-05, so it's back on. Adaptive + effort works
+        # on every current model, so this line no longer pins us to one model.
         with self.client.messages.stream(
             model=self.model,
             max_tokens=self.max_tokens,
-            thinking={"type": "between_tools"},
+            thinking={"type": "adaptive"},
+            output_config={"effort": self.effort},
             system=system,
             messages=[{"role": "user", "content": content}],
         ) as stream:
             resp = stream.get_final_message()
+        _log_usage(self.model, self.effort, resp.usage)
 
         # A policy decline is HTTP 200 with no usable content; say so plainly.
         if resp.stop_reason == "refusal":
@@ -110,15 +119,32 @@ class ClaudeProvider(AIProvider):
             raise ValueError(
                 f"Claude hit the {self.max_tokens}-token output cap before "
                 "finishing the JSON (response truncated). Raise "
-                "ANTHROPIC_MAX_TOKENS in .env (this model's ceiling is 128000; "
-                "no rebuild needed, .env is a bind mount), or send fewer "
-                "flyers per run."
+                "ANTHROPIC_MAX_TOKENS in .env if it's set below 128000 (the "
+                "model's ceiling; no rebuild needed, .env is a bind mount), "
+                "lower ANTHROPIC_EFFORT, or send fewer flyers per run."
             )
 
         raw = "".join(b.text for b in resp.content if b.type == "text").strip()
         data = _parse_json(raw)
         data.setdefault("week_of", week_of)
         return WeeklyReport.from_dict(data)
+
+
+def _log_usage(model: str, effort: str, usage) -> None:
+    """One line per run: tokens + rough cost, so model/effort changes are measurable."""
+    inp = usage.input_tokens or 0
+    out = usage.output_tokens or 0
+    cread = getattr(usage, "cache_read_input_tokens", 0) or 0
+    cwrite = getattr(usage, "cache_creation_input_tokens", 0) or 0
+    line = (f"  • AI usage ({model}, effort {effort}): {inp + cread + cwrite:,} in "
+            f"({cread:,} cached), {out:,} out incl. thinking")
+    price = _PRICES.get(model)
+    if price:
+        # Cache writes bill at 1.25x input for the default 5-minute TTL.
+        cost = (inp * price[0] + cwrite * price[0] * 1.25
+                + cread * price[2] + out * price[1]) / 1_000_000
+        line += f" ≈ ${cost:.2f}"
+    print(line, file=sys.stderr)
 
 
 def _parse_json(raw: str) -> dict:
