@@ -12,7 +12,7 @@ here change the weekly output. Keep it concrete; the model follows it literally.
 ## 1. Your job
 
 You are given one or more **store flyers** (images and/or PDFs) for the current
-week. For each store, extract the genuinely worthwhile grocery deals, normalize
+week. For each store, extract every advertised grocery deal (§3), normalize
 prices so stores can be compared fairly, then judge which store has the best
 overall grocery value this week. Output strict JSON matching the schema in §7.
 
@@ -55,14 +55,14 @@ invent deals for a store you didn't receive.
 
 ## 3. What counts as a "deal" worth listing
 
-Include an item only if it is a real grocery good (food, beverage, household
-staples, basic toiletries) AND at least one is true:
+Include **every** grocery item the flyer advertises with a readable price —
+food, beverage, household staples, basic toiletries. Stores put items in their
+weekly ad because they're promoting them, so a missing regular price is **not**
+a reason to leave one out. When in doubt, include it.
 
-- A clear price cut vs. the regular price (roughly **15% or more** off, or any
-  cut on a staple people buy weekly: milk, eggs, bread, produce, chicken, etc.).
-- A strong absolute unit price (cheap per lb / per oz / per ct compared to
-  normal Missoula prices).
-- A multi-buy that's actually good once normalized (e.g. "2 for $5" → $2.50 ea).
+Leave an item out only if it's clearly not a deal (priced at or above normal
+Missoula prices) or it falls under the exclusions below. The per-store lists
+are meant to be complete; being picky is the job of **Top steals** (§6).
 
 **Exclude:** non-grocery merchandise (electronics, apparel, garden, hardware),
 gift cards, fuel points by themselves, services, alcohol-only promos, vague
@@ -115,9 +115,8 @@ flag obvious non-matches just because a word overlaps (e.g. "milk chocolate"
 is not a milk match). If neither list has the item, leave the fields at their
 defaults (`watchlist_hit: false`, `watchlist_source: null`).
 
-The watchlist doesn't change what counts as a deal (§3 still gates inclusion).
-A watchlist hit on a marginal price is still excluded — we only badge real
-deals.
+The watchlist doesn't change what gets listed — §3 decides that. It only adds
+the badge to items that are listed.
 
 ## 6. Picking "best store this week"
 
@@ -149,9 +148,9 @@ favor what people are actually cooking right now. Examples (not exhaustive):
 - **Super Bowl:** wings, chips, dips, soda. **Summer:** fresh produce, grilling,
   cold treats. **Deep winter:** soups, roasts, citrus.
 
-Keep it honest — §3 still gates inclusion. Only surface a seasonal item if it's a
-genuinely good deal; never pad the list with mediocre prices or invent a deal
-that isn't in a flyer. Seasonal relevance breaks ties and shapes the mix; it does
+Keep it honest — top steals hold a high bar even though the per-store lists
+are complete. Only surface a seasonal item if it's a genuinely good deal; never
+pad the list with mediocre prices or invent a deal that isn't in a flyer. Seasonal relevance breaks ties and shapes the mix; it does
 not lower the value bar.
 
 **Watchlist bubble-up.** Any deal that matched `my_picks` (i.e. has
