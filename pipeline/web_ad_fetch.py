@@ -61,10 +61,13 @@ UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
 _DATE_RANGE_RE = re.compile(
     r"([A-Z][a-z]{2} \d{1,2}, \d{4})\s*-\s*([A-Z][a-z]{2} \d{1,2}, \d{4})"
 )
-# "Weekly ad 10-28 - 11-3 2026" — the store-typed ad title ShopHero shows since
-# late Oct 2026, replacing the range above. One trailing year for both ends.
+# "Weekly ad 10-28 - 11-3 2026" / "Weekly Ad 11-4 thru 11-10 2026" — the ad
+# title ShopHero shows since late Oct 2026, replacing the range above. The store
+# types it by hand, so the separator varies. One trailing year for both ends.
 _NUMERIC_RANGE_RE = re.compile(
-    r"\b(\d{1,2})[-/](\d{1,2})\s*-\s*(\d{1,2})[-/](\d{1,2}),?\s+(\d{4})\b"
+    r"\b(\d{1,2})[-/](\d{1,2})\s*(?:-|–|—|thru|through|to)\s*"
+    r"(\d{1,2})[-/](\d{1,2}),?\s+(\d{4})\b",
+    re.I,
 )
 # Full URL of an ad page image: …/ad_<adId>_page_<n>_<hash>.jpg
 _AD_IMG_RE = re.compile(
