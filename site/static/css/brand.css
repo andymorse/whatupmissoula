@@ -376,7 +376,7 @@ footer p:last-child { margin-bottom: 0; }
   .events { grid-template-columns: 1fr; }
   .bizlist { grid-template-columns: 1fr; }
   .dealsearch { max-width: none; margin-top: 24px; }
-  /* Three nav pills no longer fit beside the brand on phones — keep the brand
+  /* The nav pills no longer fit beside the brand on phones — keep the brand
      on one line and let the nav wrap onto its own row instead of overflowing. */
   .topbar { flex-wrap: wrap; margin-bottom: 24px; }
   .hero .brand { gap: 10px; }
@@ -387,4 +387,59 @@ footer p:last-child { margin-bottom: 0; }
 
 @media (max-width: 480px) {
   .steals { grid-template-columns: 1fr; }
+  /* Four pills (Deals · Events · YMCA · Recommends) on one row of a 360px phone. */
+  .sitenav { gap: 2px; }
+  .sitenav a { padding: 6px 9px; }
+}
+
+/* Regulars hub: org cards (reuses .biz) with an inline weekly lineup. */
+.crumb {
+  display: inline-block; margin-bottom: 14px; font-size: 14px; font-weight: 700;
+  color: rgba(255,255,255,0.75); text-decoration: none;
+}
+.crumb:hover { color: var(--gold); }
+.regular-rows { list-style: none; margin-top: 14px; }
+.regular-rows li {
+  display: grid; grid-template-columns: 11em 1fr; gap: 12px;
+  padding: 8px 0; border-top: 1px solid var(--gray-100); font-size: 15px; line-height: 1.35;
+}
+.regular-when { font-weight: 700; color: var(--navy-deep); }
+.regular-when span { display: block; font-weight: 600; color: var(--gray-600); font-size: 14px; }
+.regular-what strong { font-weight: 700; color: var(--navy-deep); }
+.regular-open { font-weight: 800; }
+@media (max-width: 480px) {
+  .regular-rows li { grid-template-columns: 8.5em 1fr; }
+}
+
+/* YMCA page: one day at a time, sections stacked, a time column + what/who. */
+.ymca-days { margin-top: 18px; }
+.ymca-day + .ymca-day { margin-top: 48px; }
+.ymca-day-title { font-size: clamp(26px, 3.4vw, 36px); }
+.ymca-sec { margin-top: 22px; }
+.ymca-sec h3 {
+  font-family: var(--body); font-size: 12px; font-weight: 800;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--gold-dark);
+  padding-bottom: 6px; border-bottom: 2px solid var(--gray-100);
+}
+.ymca-list { list-style: none; }
+.ymca-row {
+  display: grid; grid-template-columns: 8.5em 1fr; gap: 12px;
+  padding: 9px 0; border-bottom: 1px solid var(--gray-100); line-height: 1.35;
+}
+.ymca-time { font-weight: 700; color: var(--navy-deep); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ymca-what strong { font-weight: 700; color: var(--navy-deep); }
+.ymca-meta { display: block; font-size: 14px; color: var(--gray-600); }
+.ymca-flag {
+  font-size: 11px; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase;
+  color: #b42318; background: #fde8e7; padding: 2px 7px; border-radius: 999px; margin-left: 4px;
+}
+.ymca-row.is-closed .ymca-what strong,
+.ymca-row.is-closed .ymca-time { color: var(--gray-400); font-weight: 600; }
+.ymca-row.is-cancelled .ymca-what strong { text-decoration: line-through; color: var(--gray-400); }
+.ymca-row.is-past { opacity: 0.4; }
+.ymca-row.is-now { background: #fff8db; box-shadow: inset 4px 0 0 var(--gold); margin: 0 -14px; padding-left: 14px; padding-right: 14px; }
+.ymca-empty { margin-top: 18px; }
+.ymca-foot { margin-top: 40px; }
+@media (max-width: 480px) {
+  .ymca-row { grid-template-columns: 7.2em 1fr; gap: 8px; font-size: 16px; }
 }

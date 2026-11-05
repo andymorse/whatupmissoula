@@ -50,58 +50,94 @@ email:
      "twitter", "x.com", "youtube", "tiktok", "pinterest", "mailto:",
      "app store", "google play", "apps.apple"]
 
-# Stores in scope (mirror ai/guidance.md §2). `senders` maps a store to the
-# Events page extras. The Roxy is fetched from its own API (roxy_fetch.py); this
-# section is for venues with NO machine-readable calendar, whose published
-# recurring schedule we generate locally instead. No network, no AI.
-# See recurring_events.py for the field reference.
+# Events page (/events/): one-off and dated local happenings, refreshed every
+# render. Sources are switched on/off here; each has its own fetcher.
 events:
+  # The Roxy (roxy_fetch.py + AI tagging in events_enrich.py). OFF since
+  # 2026-11-05: the site went behind a bot wall (~2026-11) — don't bypass it.
+  # Flip back on if they open their API again.
+  roxy:
+    enabled: false
+  # Missoula Public Library program calendar (library_fetch.py) — public MEC
+  # iCal feed, kid/special tags from the library's own categories. No AI.
+  library:
+    enabled: true
+    feed: "https://www.missoulapubliclibrary.org/?mec-ical-feed=1"
+
   # One-line blurb under each venue's heading on /events/. Keyed by the venue
-  # name exactly as it appears on the events (The Roxy's comes from roxy_fetch,
-  # the rest from `recurring` below). A venue with no entry just shows its name.
+  # name exactly as the fetcher sets it. A venue with no entry shows its name.
   venue_notes:
     "The Roxy Theater": >-
       Locally programmed at Missoula's nonprofit community cinema.
-    "Draught Works Brewery": >-
-      Northside taproom on Toole Ave. The weekly lineup changes — see their
-      listing for who's playing.
+    "Missoula Public Library": >-
+      Free programs downtown and at the branches — story times, classes,
+      clubs, and talks. Click through to confirm before you go.
 
-  recurring:
-    - venue: "Draught Works Brewery"
-      url: "https://www.draughtworksbrewery.com/events/"
-      # Draught Works' site has no events feed — their own /events/ page embeds
-      # missoulaevents.net. Schedule below is from their /events/recurring-events/
-      # page, CONFIRMED 2026-08-14. Update here when they change it.
-      items:
-        - title: "Live Music on the Murphy Stage"
-          weekday: ["Thursday", "Saturday"]
-          time: "7:00 PM"
-          tags: ["Live music"]
-        - title: "Sunday Night Jazz"
-          weekday: "Sunday"
-          time: "6:00 PM"
-          tags: ["Live music"]
-        - title: "Music BINGO"
-          weekday: "Tuesday"
-          time: "7:00 PM"
-          tags: ["Trivia & games"]
-        - title: "Wednesday Night Trivia"
-          weekday: "Wednesday"
-          time: "7:00 PM"
-          tags: ["Trivia & games"]
-        - title: "Vinyl Night"
-          weekday: "Thursday"
-          weeks: [1]                # first Thursday of the month only
-          time: "7:00 PM"
-          series: "First Thursday"
-          tags: ["Live music"]
-          note: >-
-            Bring your own records — run with Ear Candy Music.
-        - title: "'Rowler Mondays"
-          weekday: "Monday"
-          time: "All day"
-          tags: ["Deal"]
+# Regulars page (/regulars/): local places with a steady weekly schedule,
+# listed in this order. Two shapes:
+#   • schedule_page: ymca  → the card links to a full fetched schedule page
+#     (/regulars/ymca/, built from the `ymca:` block below).
+#   • items: [...]         → a fixed weekly lineup typed in by hand, shown
+#     right on the card. Item fields: title, weekday (a day name or a list),
+#     time (display string or "All day"), optional weeks: [1] for "1st
+#     Thursday" style monthly slots, tags, series, note.
+regulars:
+  - name: "Missoula Family YMCA"
+    schedule_page: ymca
+    url: "https://www.ymcamissoula.org/schedules"
+    blurb: >-
+      Lap swim, open swim, group fitness, Family Fun Time, and the climbing
+      wall — day by day, straight from the Y's own schedule.
+  - name: "Draught Works Brewery"
+    url: "https://www.draughtworksbrewery.com/events/"
+    blurb: >-
+      Northside taproom on Toole Ave. The live music lineup changes — see
+      their listing for who's playing.
+    # Draught Works' site has no events feed — their own /events/ page embeds
+    # missoulaevents.net. Schedule below is from their /events/recurring-events/
+    # page, CONFIRMED 2026-08-14. Update here when they change it.
+    items:
+      - title: "Live Music on the Murphy Stage"
+        weekday: ["Thursday", "Saturday"]
+        time: "7:00 PM"
+        tags: ["Live music"]
+      - title: "Sunday Night Jazz"
+        weekday: "Sunday"
+        time: "6:00 PM"
+        tags: ["Live music"]
+      - title: "Music BINGO"
+        weekday: "Tuesday"
+        time: "7:00 PM"
+        tags: ["Trivia & games"]
+      - title: "Wednesday Night Trivia"
+        weekday: "Wednesday"
+        time: "7:00 PM"
+        tags: ["Trivia & games"]
+      - title: "Vinyl Night"
+        weekday: "Thursday"
+        weeks: [1]                # first Thursday of the month only
+        time: "7:00 PM"
+        series: "First Thursday"
+        tags: ["Live music"]
+        note: >-
+          Bring your own records — run with Ear Candy Music.
+      - title: "'Rowler Mondays"
+        weekday: "Monday"
+        time: "All day"
+        tags: ["Deal"]
 
+# YMCA schedule for /regulars/ymca/, read from the public "Print Schedule"
+# PDF behind ymcamissoula.org/schedules (ymca_fetch.py). No AI,
+# so it refreshes on every render. Two weeks keeps the page useful however
+# many days pass between the Wednesday run and --publish.
+ymca:
+  enabled: true
+  daxko_site: 3017
+  branch_id: "728f51095c494cf1a3e53b9467263afc"
+  weeks: 2
+  url: "https://www.ymcamissoula.org/schedules"
+
+# Stores in scope (mirror ai/guidance.md §2). `senders` maps a store to the
 # addresses its flyer emails come from (supports "*.domain" wildcards). The
 # store name here is just a hint — the AI confirms the real store from the ad.
 # Senders below were CONFIRMED against real weekly-ad emails on 2026-05-27.

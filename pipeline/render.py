@@ -14,6 +14,7 @@ from zoneinfo import ZoneInfo
 import yaml
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
+from regulars import build_regulars
 from schema import WeeklyReport
 from settings import env as _env, load_config
 
@@ -111,9 +112,9 @@ def _events_by_venue(report: WeeklyReport) -> list[dict]:
     """Group events by venue so the page reads venue-by-venue, like the deals
     page reads store-by-store.
 
-    Order is first appearance in report.events, not alphabetical: run.py appends
-    the fetched lineup (The Roxy) before the generated recurring venues, so the
-    anchor venue stays on top without anything being hardcoded here.
+    Order is first appearance in report.events, not alphabetical — i.e. the
+    order run.py's refresh_events adds the sources in, so nothing about venue
+    order is hardcoded here.
     """
     notes = ((load_config().get("events") or {}).get("venue_notes")) or {}
     order: list[str] = []
@@ -231,7 +232,7 @@ def _write_sitemap_and_robots(out: Path, base_url: str | None, paths: list[str])
     (out / "robots.txt").write_text(robots, encoding="utf-8")
 
 
-def render(report: WeeklyReport, out_dir: str | Path) -> Path:
+def render(report: WeeklyReport, out_dir: str | Path, *, ymca: dict | None = None) -> Path:
     out = Path(out_dir).resolve()
     out.mkdir(parents=True, exist_ok=True)
 
@@ -290,6 +291,30 @@ def render(report: WeeklyReport, out_dir: str | Path) -> Path:
             rec_dir.mkdir(parents=True, exist_ok=True)
             (rec_dir / "index.html").write_text(rec_html, encoding="utf-8")
             sitemap_paths.append("/recommends/")
+
+    # Regulars → /regulars/ (places with a steady weekly schedule, from config)
+    # and its fetched schedule pages under it — so far /regulars/ymca/, from
+    # ymca_fetch.py via run.py. A schedule page is only rewritten when fresh
+    # data came in: a failed fetch or an offline render (--sample) leaves the
+    # previous one in the draft tree, so the page never blanks. ymca.json rides
+    # along for debugging / a future API.
+    regulars_dir = out / "regulars"
+    ymca_dir = regulars_dir / "ymca"
+    if ymca and ymca.get("days"):
+        ymca_html = env.get_template("ymca.html.j2").render(
+            ymca=ymca, updated=_datetime.now(LOCAL_TZ))
+        ymca_dir.mkdir(parents=True, exist_ok=True)
+        (ymca_dir / "index.html").write_text(ymca_html, encoding="utf-8")
+        (ymca_dir / "ymca.json").write_text(json.dumps(ymca, indent=2), encoding="utf-8")
+    # A card whose schedule page has never been built would link to a 404.
+    cards = [c for c in build_regulars(load_config())
+             if not c["page"] or (regulars_dir / c["page"] / "index.html").is_file()]
+    if cards:
+        regulars_dir.mkdir(parents=True, exist_ok=True)
+        (regulars_dir / "index.html").write_text(
+            env.get_template("regulars.html.j2").render(cards=cards), encoding="utf-8")
+        sitemap_paths.append("/regulars/")
+        sitemap_paths += [f"/regulars/{c['page']}/" for c in cards if c["page"]]
 
     # About page → /about/index.html. See the opt-in note above. Un-publishing
     # has to *remove* the directory, not just skip writing it: renders accumulate

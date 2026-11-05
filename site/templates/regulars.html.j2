@@ -1,0 +1,53 @@
+{% extends "base.html.j2" %}
+{% block title %}Missoula Regulars — YMCA Schedule, Weekly Trivia & Live Music — What's Up Missoula{% endblock %}
+{% block description %}The regular stuff around Missoula: the YMCA's pool and class schedule, plus weekly trivia, bingo, and live music nights. Easy to read on your phone.{% endblock %}
+{% block path %}/regulars/{% endblock %}
+{% block body %}
+<header class="hero">
+  <div class="container">
+    <div class="topbar">
+      <div class="brand">
+        <img src="/static/img/mark.png" alt="What's Up Missoula">
+        <span>What's Up Missoula</span>
+      </div>
+      <nav class="sitenav">
+        <a href="/">Deals</a>
+        <a href="/events/">Events</a>
+        <a href="/regulars/" class="active">Regulars</a>
+        <a href="/recommends/">Recommends</a>
+      </nav>
+    </div>
+    <span class="label">The Regulars</span>
+    <h1>The stuff that happens <em>every week</em>.</h1>
+    <p class="sub">Swim times, classes, trivia nights, and live music &mdash; the regular rhythm of Missoula, in one place.</p>
+  </div>
+</header>
+
+<section class="section">
+  <div class="container">
+    <div class="bizlist">
+      {% for c in cards %}
+      <div class="biz regular">
+        <h3 class="biz-name">{% if c.page %}<a href="/regulars/{{ c.page }}/">{{ c.name }}</a>{% elif c.url %}<a href="{{ c.url }}" target="_blank" rel="noopener">{{ c.name }}</a>{% else %}{{ c.name }}{% endif %}</h3>
+        {% if c.blurb %}<p class="biz-what">{{ c.blurb }}</p>{% endif %}
+        {% if c.rows %}
+        <ul class="regular-rows">
+          {% for r in c.rows %}
+          <li>
+            <span class="regular-when">{{ r.when }}<span>{{ r.time }}</span></span>
+            <span class="regular-what"><strong>{{ r.title }}</strong>{% if r.note %}<span class="ymca-meta">{{ r.note }}</span>{% endif %}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+        <div class="biz-contact">
+          {% if c.page %}<a class="regular-open" href="/regulars/{{ c.page }}/">Open the schedule &rarr;</a>{% endif %}
+          {% if c.url %}<a href="{{ c.url }}" target="_blank" rel="noopener">{{ c.url|replace('https://','')|replace('http://','')|replace('www.','')|trim('/') }}</a>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <p class="order-note" style="margin-top:32px">Schedules change &mdash; check with the place before you head over. Know a spot with a regular weekly thing? Let us know.</p>
+  </div>
+</section>
+{% endblock %}

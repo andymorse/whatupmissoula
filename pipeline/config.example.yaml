@@ -46,6 +46,33 @@ email:
      "twitter", "x.com", "youtube", "tiktok", "pinterest", "mailto:",
      "app store", "google play", "apps.apple"]
 
+# Events page (/events/). Each source has its own fetcher; see config.yaml
+# for the venue_notes blurbs.
+events:
+  roxy:
+    enabled: false          # roxy_fetch.py — site is behind a bot wall
+  library:
+    enabled: true           # library_fetch.py — public iCal feed, no AI
+    feed: "https://www.missoulapubliclibrary.org/?mec-ical-feed=1"
+
+# Regulars page (/regulars/): places with a steady weekly schedule. Either
+# `schedule_page: ymca` (links to a fetched schedule page) or hand-typed
+# `items:` shown on the card — see config.yaml for the field reference.
+regulars:
+  - name: "Missoula Family YMCA"
+    schedule_page: ymca
+    url: "https://www.ymcamissoula.org/schedules"
+    blurb: "Lap swim, classes, family time, and the climbing wall."
+
+# YMCA schedule for /regulars/ymca/, read from the public "Print Schedule"
+# PDF behind ymcamissoula.org/schedules (ymca_fetch.py).
+ymca:
+  enabled: true
+  daxko_site: 3017
+  branch_id: "728f51095c494cf1a3e53b9467263afc"
+  weeks: 2
+  url: "https://www.ymcamissoula.org/schedules"
+
 # Stores in scope (mirror ai/guidance.md §2). `senders` maps a store to the
 # addresses its flyer emails come from (supports "*.domain" wildcards). The
 # store name here is just a hint — the AI confirms the real store from the ad.

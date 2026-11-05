@@ -41,18 +41,24 @@ def monday_of_this_week() -> str:
 
 def refresh_events(report: WeeklyReport, cfg: dict, week_of: str, *,
                    live: bool) -> None:
-    """Rebuild the report's events section in place: The Roxy + recurring venues.
+    """Rebuild the report's events section in place from the enabled sources.
 
-    Shared by the full run and --rerender so the two can't drift apart. The Roxy
-    publishes a plain JSON calendar and the enrichment call is a few hundred
-    tokens of text, so refreshing on every render is cheap — and a lineup three
-    weeks stale is worse than no lineup at all. That's the one place --rerender
-    touches the network: the flyers and their vision passes stay untouched.
+    Shared by the full run and --rerender so the two can't drift apart. Every
+    source is a public feed (the Roxy adds a few hundred tokens of AI tagging),
+    so refreshing on every render is cheap — and a lineup three weeks stale is
+    worse than no lineup at all. That's the one place --rerender touches the
+    network for events: the flyers and their vision passes stay untouched.
 
-    ``live=False`` is the offline path (--sample/--url/--images): recurring
-    events are still generated (no network, no AI), the Roxy is left alone.
+    Sources are switched in config (events.roxy / events.library). Each one is
+    additive: a failed fetch keeps whatever that venue had in the report rather
+    than blanking the page. ``live=False`` (--sample/--url/--images) leaves the
+    events as they are.
     """
-    if live:
+    if not live:
+        return
+    ecfg = cfg.get("events") or {}
+
+    if (ecfg.get("roxy") or {}).get("enabled"):
         try:
             from roxy_fetch import fetch_roxy_events
             from events_enrich import enrich_events
@@ -61,29 +67,59 @@ def refresh_events(report: WeeklyReport, cfg: dict, week_of: str, *,
             # Assign only once both calls succeed, so a failed fetch keeps
             # whatever lineup the report already had rather than blanking it.
             week_pick = enrich_events(films, week_of)
-            report.events = films
+            _replace_venue(report, "The Roxy Theater", films)
             report.week_pick = week_pick
             print(f"    → {len(films)} film(s) this week")
         except Exception as e:                 # events are additive, never fatal
             print(f"  ! Roxy events fetch failed ({e}) — skipping", file=sys.stderr)
+    else:
+        # Switched off: drop any lineup (and its AI blurb) carried over in an
+        # older report.json, or --rerender would keep republishing it.
+        _replace_venue(report, "The Roxy Theater", [])
+        report.week_pick = ""
 
-    # Venues with no fetchable calendar: generate their published recurring
-    # schedule from config. No network and no AI, so this runs on every path —
-    # and deliberately after enrich_events, which only tags the fetched lineup.
-    # Drop the previous pass first so repeated re-renders don't stack duplicates.
+    lib = ecfg.get("library") or {}
+    if lib.get("enabled"):
+        try:
+            from library_fetch import fetch_library_events, VENUE, FEED
+            print("  • Missoula Public Library: fetching this week's programs…")
+            programs = fetch_library_events(week_of, lib.get("feed") or FEED)
+            _replace_venue(report, VENUE, programs)
+            print(f"    → {len(programs)} program(s) this week")
+        except Exception as e:                 # events are additive, never fatal
+            print(f"  ! Library events fetch failed ({e}) — skipping", file=sys.stderr)
+
+    # Retired 2026-11-05: Draught Works' weekly lineup moved to /regulars/.
+    # Clear its generated events out of any older report.json.
+    _replace_venue(report, "Draught Works Brewery", [])
+
+
+def _replace_venue(report: WeeklyReport, venue: str, events: list) -> None:
+    """Swap one venue's events, keeping every other venue's in place."""
+    report.events = [e for e in (report.events or []) if e.venue != venue] + events
+
+
+def refresh_ymca(cfg: dict, *, live: bool) -> dict | None:
+    """The YMCA schedule for /ymca/, or None to leave the existing page alone.
+
+    A plain PDF download plus text parsing — no AI — so like the events it's
+    refreshed on every render. On failure the previous page stays up (render
+    only rewrites /ymca/ when it gets data), since a slightly old schedule
+    beats a missing tab.
+    """
+    if not live or not (cfg.get("ymca") or {}).get("enabled"):
+        return None
     try:
-        from recurring_events import fetch_recurring_events
-        recurring = fetch_recurring_events(cfg, week_of)
-        venues = {v.get("venue") for v in
-                  (cfg.get("events") or {}).get("recurring") or []}
-        kept = [e for e in (report.events or []) if e.venue not in venues]
-        report.events = kept + recurring
-        if recurring:
-            named = {e.venue for e in recurring}
-            print(f"  • Recurring: {len(recurring)} event(s) from "
-                  f"{', '.join(sorted(named))}")
-    except Exception as e:                     # events are additive, never fatal
-        print(f"  ! Recurring events failed ({e}) — skipping", file=sys.stderr)
+        from ymca_fetch import fetch_ymca_schedule
+        print("  • YMCA: fetching the schedule…")
+        ymca = fetch_ymca_schedule(cfg)
+        n = sum(len(s["items"]) for d in ymca["days"] for s in d["sections"])
+        print(f"    → {n} item(s) over {len(ymca['days'])} day(s)")
+        return ymca
+    except Exception as e:                     # additive, never fatal
+        print(f"  ! YMCA schedule fetch failed ({e}) — keeping the old page",
+              file=sys.stderr)
+        return None
 
 
 def main() -> int:
@@ -133,7 +169,7 @@ def main() -> int:
                   f"week ({monday_of_this_week()}) — re-rendering it as-is; "
                   f"run a full job to refresh the deals.", file=sys.stderr)
         refresh_events(report, cfg, report.week_of, live=True)
-        path = render(report, draft_dir)
+        path = render(report, draft_dir, ymca=refresh_ymca(cfg, live=True))
         print(f"Re-rendered {src} → {path}")
         print("Review it, then run:  python run.py --publish")
         return 0
@@ -284,7 +320,8 @@ def main() -> int:
     refresh_events(report, cfg, week_of,
                    live=not (args.sample or args.url or args.images))
 
-    path = render(report, draft_dir)
+    path = render(report, draft_dir, ymca=refresh_ymca(
+        cfg, live=not (args.sample or args.url or args.images)))
     print(f"Draft rendered → {path}")
     if drop_files:
         from extract import archive_drops

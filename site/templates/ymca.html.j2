@@ -1,0 +1,75 @@
+{% extends "base.html.j2" %}
+{% block title %}Missoula YMCA Schedule — Lap Swim, Classes, Family Time — What's Up Missoula{% endblock %}
+{% block description %}The Missoula Family YMCA schedule, day by day: lap swim and open swim times, group fitness classes, Family Fun Time, and open climb. Easy to read on your phone.{% endblock %}
+{% block path %}/regulars/ymca/{% endblock %}
+{% block body %}
+<header class="hero hero-events">
+  <div class="container">
+    <div class="topbar">
+      <div class="brand">
+        <img src="/static/img/mark.png" alt="What's Up Missoula">
+        <span>What's Up Missoula</span>
+      </div>
+      <nav class="sitenav">
+        <a href="/">Deals</a>
+        <a href="/events/">Events</a>
+        <a href="/regulars/" class="active">Regulars</a>
+        <a href="/recommends/">Recommends</a>
+      </nav>
+    </div>
+    <a class="crumb" href="/regulars/">&larr; All regulars</a>
+    <span class="label">Missoula Family YMCA · 3000 S Russell St</span>
+    <h1>What&rsquo;s on at the <em>Y</em>.</h1>
+    <p class="sub">Pool times, classes, family time, and the climbing wall &mdash; one day at a time.</p>
+    <p class="refresh-note"><span class="dot"></span>Pulled from the Y&rsquo;s schedule {{ updated.strftime('%a %b') }} {{ updated.day }}</p>
+    {# Day + section pickers are JS-only (ymca.js reveals them); without JS the
+       page is simply every day in order. #}
+    <div class="tagbar ymca-days" id="ymca-days" hidden>
+      <span class="tagbar-label">Day</span>
+    </div>
+    <div class="tagbar" id="ymca-sections" hidden>
+      <span class="tagbar-label">Show</span>
+      <button type="button" class="tagchip active" data-section="">Everything</button>
+      {% set ns = namespace(names=[]) %}
+      {% for d in ymca.days %}{% for s in d.sections %}{% if s.name not in ns.names %}{% set ns.names = ns.names + [s.name] %}{% endif %}{% endfor %}{% endfor %}
+      {% for name in ['Pool', 'Classes', 'Kids & Family', 'Climb', 'Gym & Courts'] if name in ns.names %}
+      <button type="button" class="tagchip" data-section="{{ name }}">{{ name }}</button>
+      {% endfor %}
+    </div>
+  </div>
+</header>
+
+<section class="section">
+  <div class="container">
+    {% for d in ymca.days %}
+    <div class="ymca-day" data-date="{{ d.date }}" data-short="{{ d.label.split(',')[0][:3] }} {{ d.date[8:]|int }}">
+      <h2 class="ymca-day-title">{{ d.label }}</h2>
+      {% for s in d.sections %}
+      <div class="ymca-sec" data-section="{{ s.name }}">
+        <h3>{{ s.name }}</h3>
+        <ul class="ymca-list">
+          {% for i in s['items'] %}
+          <li class="ymca-row{% if i.closed %} is-closed{% endif %}{% if i.cancelled %} is-cancelled{% endif %}" data-start="{{ i.start }}" data-end="{{ i.end }}">
+            <span class="ymca-time">{{ i.time }}</span>
+            <span class="ymca-what">
+              <strong>{{ i.title }}</strong>{% if i.cancelled %} <span class="ymca-flag">Cancelled</span>{% endif %}
+              {% set meta = [] %}
+              {% if i.instructor %}{% set meta = meta + [i.instructor] %}{% endif %}
+              {% if i.area and not (s.name == 'Pool' and i.area == 'Pool') %}{% set meta = meta + [i.area] %}{% endif %}
+              {% if meta %}<span class="ymca-meta">{{ meta|join(' · ') }}</span>{% endif %}
+            </span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endfor %}
+    </div>
+    {% endfor %}
+    <p class="order-note ymca-foot">Straight from the Y&rsquo;s own schedule, which says classes can change on short notice &mdash; check the
+      <a href="{{ ymca.source }}" target="_blank" rel="noopener">YMCA schedule</a> or the Y360 app before you head over.
+      Not affiliated with the YMCA.</p>
+  </div>
+</section>
+
+<script src="/static/js/ymca.js" defer></script>
+{% endblock %}

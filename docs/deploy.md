@@ -253,7 +253,8 @@ docker compose restart caddy     # only if Caddyfile changed
 ## 8b Code updates without re-reading the ads
 
 Reuses the published deals verbatim (no email fetch, no vision pass) and
-re-fetches the events section so the Roxy lineup stays current.
+re-fetches the events (library programs) and the YMCA schedule on /regulars/
+so they stay current.
 
 ```
 cd /srv/wum && git pull && docker compose build pipeline

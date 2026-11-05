@@ -6,3 +6,4 @@ pdf2image>=1.17        # PDF flyers -> page images for vision
 Pillow>=10.0           # image handling / downscaling
 pillow-avif-plugin>=1.4 # decode AVIF flyer images (Orange Street / ShopHero serve f=auto AVIF)
 python-dotenv>=1.0     # load .env
+python-dateutil>=2.8   # expand RRULEs in the library iCal feed (library_fetch.py)

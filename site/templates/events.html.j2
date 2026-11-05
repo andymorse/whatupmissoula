@@ -1,6 +1,6 @@
 {% extends "base.html.j2" %}
-{% block title %}Missoula Events This Week — Roxy Theater Showtimes — What's Up Missoula{% endblock %}
-{% block description %}What's happening in Missoula the week of {{ report.week_of }}: Roxy Theater showtimes, kids matinees, and special events. Refreshed every Wednesday.{% endblock %}
+{% block title %}Missoula Events This Week — Story Times, Classes & Library Programs — What's Up Missoula{% endblock %}
+{% block description %}What's happening in Missoula the week of {{ report.week_of }}: story times, kids programs, classes, and talks at the Missoula Public Library. Refreshed every Wednesday.{% endblock %}
 {% block path %}/events/{% endblock %}
 {% block body %}
 <header class="hero hero-events">
@@ -13,6 +13,7 @@
       <nav class="sitenav">
         <a href="/">Deals</a>
         <a href="/events/" class="active">Events</a>
+        <a href="/regulars/">Regulars</a>
         <a href="/recommends/">Recommends</a>
       </nav>
     </div>
@@ -50,7 +51,7 @@
   <div class="container">
     <span class="label">This week</span>
     <h2>What&rsquo;s on around town</h2>
-    <p class="order-note">Venue by venue. Search &ldquo;kids&rdquo; for family-friendly screenings, or &ldquo;special&rdquo; for one-off events.</p>
+    <p class="order-note">Venue by venue. Search &ldquo;kids&rdquo; for family-friendly events, or &ldquo;special&rdquo; for one-off events. Weekly trivia, music nights, and the YMCA schedule live on <a href="/regulars/">Regulars</a>.</p>
     {% if report.events %}
     {% for v in venues %}
     <div class="venue-block">
@@ -92,7 +93,7 @@
     </div>
     {% endfor %}
     {% else %}
-    <p class="order-note" style="margin-top:16px">No screenings listed for this week yet — check back Wednesday.</p>
+    <p class="order-note" style="margin-top:16px">No events listed for this week yet — check back Wednesday.</p>
     {% endif %}
   </div>
 </section>
