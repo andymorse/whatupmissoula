@@ -87,6 +87,8 @@ concrete price.
   - **Quantity requirements** ("when you buy 5"), **digital coupon required**
   - **BOGO** / "buy one get one"
 - Date range: capture the flyer's valid-from / valid-through dates if printed.
+  If the flyer doesn't print them but its label says "ad valid … per Flipp",
+  use those dates.
 
 ## 5. Unit-price normalization (this is what makes stores comparable)
 

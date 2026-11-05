@@ -90,6 +90,12 @@ def fetch_flipp_flyers(store_cfg: dict, cfg: dict) -> list[FlyerImage]:
     canvas = _build_canvas(flyer, res_index)
     scale = canvas.width / float(flyer["width"])
 
+    # Some Flipp ads (Harvest Foods) don't print their dates legibly, but Flipp
+    # knows them. Ride them along in the hint the model sees with each tile;
+    # the guidance (§4) says to use them when the flyer itself doesn't show any.
+    hint = (f"{name} — ad valid {_day(flyer.get('valid_from')).isoformat()} to "
+            f"{_day(flyer.get('valid_to'), high=True).isoformat()} per Flipp")
+
     with tempfile.TemporaryDirectory() as td:
         pairs: list[tuple[Path, str]] = []
         for pg in pages:
@@ -99,7 +105,7 @@ def fetch_flipp_flyers(store_cfg: dict, cfg: dict) -> list[FlyerImage]:
                 continue
             p = Path(td) / f"page_{pg.get('page', 0):02d}.jpg"
             canvas.crop(box).save(p, format="JPEG", quality=90)
-            pairs.append((p, name))
+            pairs.append((p, hint))
         if not pairs:
             raise RuntimeError(f"{name}: Flipp flyer {flyer['id']} produced no page images")
         # Reuse the shared image→tile path (honours ai.image_max_px and the
