@@ -45,7 +45,7 @@ class ClaudeProvider(AIProvider):
         if not api_key:
             raise RuntimeError("ANTHROPIC_API_KEY is not set")
         self.client = Anthropic(api_key=api_key)
-        self.model = model or os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-5-5")
+        self.model = model or os.environ.get("ANTHROPIC_MODEL", "claude-opus-5-5")
         # Output cap. The whole report is one JSON object, so too low a cap
         # truncates it mid-object and parsing fails. It's only a ceiling —
         # you're billed for tokens generated, not for the headroom.
@@ -57,8 +57,11 @@ class ClaudeProvider(AIProvider):
         # Values this large REQUIRE the streaming call below — a non-streaming
         # request would hit the SDK's 10-minute timeout before it ever went out.
         self.max_tokens = int(os.environ.get("ANTHROPIC_MAX_TOKENS", "128000"))
-        # How hard the model thinks: low | medium | high | xhigh | max.
-        self.effort = os.environ.get("ANTHROPIC_EFFORT", "medium")
+        # How hard the model thinks: low | medium | high | xhigh | max. Default
+        # low: Opus 5.5 can't turn thinking off, and low is the closest match
+        # to the thinking-off Opus 5 runs the owner was happy with. (Sonnet 5.5
+        # at medium curated the list down to 63 deals vs Opus 5's 141.)
+        self.effort = os.environ.get("ANTHROPIC_EFFORT", "low")
 
     def analyze(self, guidance: str, flyers: list[FlyerImage], week_of: str) -> WeeklyReport:
         # System: short preamble + the (cached) guidance doc.
@@ -91,16 +94,21 @@ class ClaudeProvider(AIProvider):
         # Streaming accumulates the chunks; get_final_message() returns the same
         # complete Message (content + stop_reason), and prompt caching still
         # applies to the system block.
-        # Adaptive thinking at ANTHROPIC_EFFORT (default medium). Thinking was
-        # off through Opus 5, but on Sonnet 5.5 thinking-off ("between_tools")
-        # came back 27% thinner than Opus (43% fewer Rosauers deals, eggs and
-        # butter missed) on 2026-11-05, so it's back on. Adaptive + effort works
-        # on every current model, so this line no longer pins us to one model.
-        with self.client.messages.stream(
+        # Adaptive thinking at ANTHROPIC_EFFORT (default low). Thinking was off
+        # through Opus 5; Opus 5.5 rejects {"type": "disabled"} (400), so effort
+        # is the only dial. Adaptive + effort works on every current model.
+        #
+        # fallbacks "default": if a safety classifier declines the request, the
+        # API re-runs it on Anthropic's recommended substitute model instead of
+        # returning a refusal. Vanishingly unlikely for grocery flyers; sent via
+        # extra_body because older SDKs lack the parameter.
+        with self.client.beta.messages.stream(
             model=self.model,
             max_tokens=self.max_tokens,
             thinking={"type": "adaptive"},
             output_config={"effort": self.effort},
+            betas=["server-side-fallback-2026-07-01"],
+            extra_body={"fallbacks": "default"},
             system=system,
             messages=[{"role": "user", "content": content}],
         ) as stream:
